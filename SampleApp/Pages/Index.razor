@@ -4,7 +4,7 @@
 @using static BlazorBindGen.BindGen
 @inject IJSRuntime runtime
 
-<button class="btn btn-primary" @onclick="Heavy">Do Work</button>
+<button class="btn btn-primary" id="mbtn" @onclick="Heavy">Do Work</button>
 
 
 @code{
@@ -26,7 +26,8 @@
 		Console.WriteLine(win.IsFunc("cool") + " " + win.IsFunc("getBinary"));
 		Console.WriteLine(win.IsProp("document") + " " + win.IsProp("getBinary"));
 
-		var url=win.PropRef("document").Val<string>("URL");
-		Console.WriteLine("url = "+url);
+		var url=win.PropRef("document").FuncRef("getElementById","mbtn").Val<string>("innerHTML");
+		Console.WriteLine("button has inner text as = "+url);
+
 	}
 }

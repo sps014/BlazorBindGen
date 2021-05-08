@@ -29,3 +29,16 @@ export function isfunc(pname, h) {
 export function isfuncwin(pname) {
     return typeof (window[pname]) == "function";
 }
+
+export function func(fname,params, h) {
+    return props[h][fname](...params);
+}
+export function funcwin(fname, params) {
+    return window[fname](...params);
+}
+export function funcref(fname, params, ph, h) {
+    props[ph]=props[h][fname](...params);
+}
+export function funcrefwin(fname, params, ph) {
+    props[ph] = window[fname](...params);
+}
