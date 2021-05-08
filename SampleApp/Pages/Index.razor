@@ -16,9 +16,9 @@
 	}
 	protected  async  Task Heavy()
 	{
-		Binder loader = new Binder(runtime);
+		BindGen loader = new BindGen(runtime);
 		await loader.Init();
-		var obj=loader.ThisRef();
+		var obj=loader.This;
 		Console.WriteLine("inner width = "+obj.Prop<int>("innerWidth"));
 	}
 }

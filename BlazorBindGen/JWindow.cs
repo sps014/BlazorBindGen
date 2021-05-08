@@ -9,29 +9,38 @@ namespace BlazorBindGen
 {
     public sealed class JWindow : IJObj
     {
+
+        private JWindow()
+        {
+
+        }
         ~JWindow()
         {
             //dispose
         }
+        internal static JWindow CreateJWindowObject()
+        {
+            return new JWindow();
+        }
 
         public T Prop<T>(string propname)
         {
-            return Binder.Module.Invoke<T>("propwin", propname);
+            return BindGen.Module.Invoke<T>("propwin", propname);
         }
         public async ValueTask<T> PropAsync<T>(string propname)
         {
-            return await Binder.Module.InvokeAsync<T>("propwin", propname);
+            return await BindGen.Module.InvokeAsync<T>("propwin", propname);
         }
         public JObj PropRef(string propname)
         {
             var obj = new JObj();
-            Binder.Module.InvokeVoid("proprefwin", propname, obj.Hash);
+            BindGen.Module.InvokeVoid("proprefwin", propname, obj.Hash);
             return obj;
         }
         public async ValueTask<JObj> PropRefAsync(string propname)
         {
             var obj = new JObj();
-            await Binder.Module.InvokeVoidAsync("proprefwin", propname, obj.Hash);
+            await BindGen.Module.InvokeVoidAsync("proprefwin", propname, obj.Hash);
             return obj;
         }
 
