@@ -1,15 +1,11 @@
 ﻿
 let props = new Object();
 
-export function print_prop(str)
-{
-    console.log(window[str]);
-}
-export function prop(pname,h)
+export function propval(pname,h)
 {
     return props[h][pname];
 }
-export function propwin(pname) {
+export function propvalwin(pname) {
     return window[pname];
 }
 export function propref(pname, proph, h) {

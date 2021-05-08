@@ -7,27 +7,23 @@ using System.Threading.Tasks;
 
 namespace BlazorBindGen
 {
-    public class BindGen:IAsyncDisposable
+    public static class BindGen
     {
-        private readonly Lazy<Task<IJSInProcessObjectReference>> moduleTask;
+        private static Lazy<Task<IJSInProcessObjectReference>> moduleTask;
         public static IJSInProcessObjectReference Module { get; private set; }
-        public static JWindow This { get; private set; }
-        public  BindGen(IJSRuntime jsRuntime)
+        public static JWindow Window { get; private set; }
+
+        public static async ValueTask Init(IJSRuntime jsRuntime)
         {
             var runtime = jsRuntime as IJSInProcessRuntime;
             moduleTask = new(() => runtime.InvokeAsync<IJSInProcessObjectReference>(
                "import", "./_content/BlazorBindGen/blazorbindgen.js").AsTask());
 
-            This = JWindow.CreateJWindowObject();
-        }
-        public async ValueTask Init()
-        {
-
+            Window = JWindow.CreateJWindowObject();
             Module = await moduleTask.Value;
         }
-       
 
-        public async ValueTask DisposeAsync()
+        public static async ValueTask DisposeAsync()
         {
             if (moduleTask.IsValueCreated)
             {

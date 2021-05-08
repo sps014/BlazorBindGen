@@ -1,11 +1,11 @@
 ﻿@page "/"
 
 @using BlazorBindGen
+@using static BlazorBindGen.BindGen
 @inject IJSRuntime runtime
 
-<button @onclick="Heavy">Do Work</button>
+<button class="btn btn-primary" @onclick="Heavy">Do Work</button>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
 
 @code{
 
@@ -16,9 +16,11 @@
 	}
 	protected  async  Task Heavy()
 	{
-		BindGen loader = new BindGen(runtime);
-		await loader.Init();
-		var obj=loader.This;
-		Console.WriteLine("inner width = "+obj.Prop<int>("innerWidth"));
+		await Init(runtime);
+		var win=Window;
+		var wth = win.Val<int>("innerWidth");
+		Console.WriteLine("inner width = "+wth);
+		var url=win.PropRef("document").Val<string>("URL");
+		Console.WriteLine("url = "+url);
 	}
 }

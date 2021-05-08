@@ -23,13 +23,13 @@ namespace BlazorBindGen
             return new JWindow();
         }
 
-        public T Prop<T>(string propname)
+        public T Val<T>(string propname)
         {
-            return BindGen.Module.Invoke<T>("propwin", propname);
+            return BindGen.Module.Invoke<T>("propvalwin", propname);
         }
-        public async ValueTask<T> PropAsync<T>(string propname)
+        public async ValueTask<T> ValAsync<T>(string propname)
         {
-            return await BindGen.Module.InvokeAsync<T>("propwin", propname);
+            return await BindGen.Module.InvokeAsync<T>("propvalwin", propname);
         }
         public JObj PropRef(string propname)
         {
