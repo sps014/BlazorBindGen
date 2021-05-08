@@ -46,27 +46,36 @@ namespace BlazorBindGen
 
         public T Func<T>(string funcname, params object[] param)
         {
-            return BindGen.Module.Invoke<T>("funcwin", funcname, param);
+            return BindGen.Module.Invoke<T>("funcwin",funcname, BindGen.GetParamList(param));
         }
 
         public async ValueTask<T> FuncAsync<T>(string funcname, params object[] param)
         {
-            return await BindGen.Module.InvokeAsync<T>("funcwin", funcname, param);
+            return await BindGen.Module.InvokeAsync<T>("funcwin", funcname, BindGen.GetParamList(param));
         }
 
         public JObj FuncRef(string funcname, params object[] param)
         {
             JObj j= new();
-            BindGen.Module.InvokeVoid("funcrefwin", funcname, param,j.Hash);
+            BindGen.Module.InvokeVoid("funcrefwin", funcname, BindGen.GetParamList(param), j.Hash);
             return j;
         }
 
         public async ValueTask<JObj> FuncRefAsync(string funcname, params object[] param)
         {
             JObj j = new();
-            await BindGen.Module.InvokeVoidAsync("funcrefwin", funcname, param, j.Hash);
+            await BindGen.Module.InvokeVoidAsync("funcrefwin", funcname, BindGen.GetParamList(param), j.Hash);
             return j;
         }
-    
+
+        public void FuncVoid(string funcname, params object[] param)
+        {
+            BindGen.Module.InvokeVoid("funcvoidwin", funcname, BindGen.GetParamList(param));
+        }
+
+        public async void FuncVoidAsync(string funcname, params object[] param)
+        {
+            await BindGen.Module.InvokeVoidAsync("funcvoidwin", funcname, BindGen.GetParamList(param));
+        }
     }
 }

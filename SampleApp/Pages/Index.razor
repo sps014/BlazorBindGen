@@ -17,6 +17,7 @@
 	protected  async  Task Heavy()
 	{
 		await Init(runtime);
+
 		var win=Window;
 
 		var wth = win.Val<int>("innerWidth");
@@ -29,5 +30,6 @@
 		var url=win.PropRef("document").FuncRef("getElementById","mbtn").Val<string>("innerHTML");
 		Console.WriteLine("button has inner text as = "+url);
 
+		win.FuncRef("fetch",win.PropRef("document").FuncRef("getElementById","mbtn"));
 	}
 }

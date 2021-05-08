@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -30,6 +31,23 @@ namespace BlazorBindGen
                 var module = await moduleTask.Value;
                 await module.DisposeAsync();
             }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ParamInfo[] GetParamList(params object[] array)
+        {
+            var list = new List<ParamInfo>(array.Length);
+            foreach (var p in array)
+            {
+                if(p is JObj)
+                {
+                    list.Add(new() { Value = (p as JObj).Hash, Type=ParamTypes.JOBJ});
+                }
+                else
+                {
+                    list.Add(new() { Value = p });
+                }
+            }
+            return list.ToArray();
         }
 
     }

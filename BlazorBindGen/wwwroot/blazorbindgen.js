@@ -1,8 +1,7 @@
 ﻿
 let props = new Object();
 
-export function propval(pname,h)
-{
+export function propval(pname,h){
     return props[h][pname];
 }
 export function propvalwin(pname) {
@@ -31,14 +30,30 @@ export function isfuncwin(pname) {
 }
 
 export function func(fname,params, h) {
-    return props[h][fname](...params);
+    return props[h][fname](...paramexpand(params));
 }
 export function funcwin(fname, params) {
-    return window[fname](...params);
+    return window[fname](...paramexpand(params));
 }
 export function funcref(fname, params, ph, h) {
-    props[ph]=props[h][fname](...params);
+    props[ph] = props[h][fname](...paramexpand(params));
 }
 export function funcrefwin(fname, params, ph) {
-    props[ph] = window[fname](...params);
+    props[ph] = window[fname](...paramexpand(params));
+}
+export function funcvoid(fname, params, h) {
+    props[h][fname](...paramexpand(params));
+}
+export function funcvoidwin(fname, params) {
+    window[fname](...paramexpand(params));
+}
+function paramexpand(param) {
+    var res = [];
+    for (var i = 0; i < param.length; i++) {
+        if (param[i].type == 1)
+            res.push(props[param[i].value]);
+        else
+            res.push(param[i].value);
+    }
+    return res;
 }
