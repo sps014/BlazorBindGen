@@ -18,8 +18,14 @@
 	{
 		await Init(runtime);
 		var win=Window;
+
 		var wth = win.Val<int>("innerWidth");
+
 		Console.WriteLine("inner width = "+wth);
+
+		Console.WriteLine(win.IsFunc("cool") + " " + win.IsFunc("getBinary"));
+		Console.WriteLine(win.IsProp("document") + " " + win.IsProp("getBinary"));
+
 		var url=win.PropRef("document").Val<string>("URL");
 		Console.WriteLine("url = "+url);
 	}

@@ -1,13 +1,9 @@
 ﻿using Microsoft.JSInterop;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BlazorBindGen
 {
-    public class JObj : IJObj
+    public class JObj : IJavaScriptObject
     {
         internal int Hash { get; set; }
         internal static int HashTrack = 0;
@@ -18,7 +14,7 @@ namespace BlazorBindGen
         }
         ~JObj()
         {
-            //dispose
+            BindGen.Module.InvokeVoid("deleteprop", Hash);
         }
 
         public T Val<T>(string propname)
@@ -42,5 +38,13 @@ namespace BlazorBindGen
             return obj;
         }
 
+        public bool IsProp(string propname)
+        {
+            return BindGen.Module.Invoke<bool>("isprop", propname, Hash);
+        }
+        public bool IsFunc(string propname)
+        {
+            return BindGen.Module.Invoke<bool>("isfunc", propname, Hash);
+        }
     }
 }

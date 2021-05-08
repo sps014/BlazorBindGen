@@ -1,23 +1,13 @@
 ﻿using Microsoft.JSInterop;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BlazorBindGen
 {
-    public sealed class JWindow : IJObj
+    public sealed class JWindow : IJavaScriptObject
     {
 
-        private JWindow()
-        {
-
-        }
-        ~JWindow()
-        {
-            //dispose
-        }
+        private JWindow() { }
+ 
         internal static JWindow CreateJWindowObject()
         {
             return new JWindow();
@@ -44,5 +34,14 @@ namespace BlazorBindGen
             return obj;
         }
 
+        public bool IsFunc(string propname)
+        {
+            return BindGen.Module.Invoke<bool>("isfuncwin", propname);
+        }
+
+        public bool IsProp(string propname)
+        {
+            return BindGen.Module.Invoke<bool>("ispropwin", propname);
+        }
     }
 }
