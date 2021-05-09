@@ -62,12 +62,12 @@ export function funcvoidwin(fname, params) {
 }
 function paramexpand(param) {
     var res = [];
-    for (var i = 0; i < param.length; i++) {
+    for (var i = 0; i < param.length; i++) 
         if (param[i].type == 1)
             res.push(props[param[i].value]);
         else
             res.push(param[i].value);
-    }
+    
     return res;
 }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.JSInterop;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -35,7 +36,7 @@ namespace BlazorBindGen
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ParamInfo[] GetParamList(params object[] array)
         {
-            var list = new List<ParamInfo>(array.Length);
+            var list=new List<ParamInfo>(array.Length);
             foreach (var p in array)
             {
                 if(p is JObj)

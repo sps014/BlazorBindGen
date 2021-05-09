@@ -32,7 +32,7 @@
 		var ctx=canvas.FuncRef("getContext","2d");
 		var grad = ctx.FuncRef("createLinearGradient", 0,0,400,0);
 		grad.FuncVoid("addColorStop", 0, "red");
-		grad.FuncVoid("addColorStop", 1, "white");
+		grad.FuncVoid("addColorStop", 1, "green");
 		ctx.SetPropRef("fillStyle",grad);
 		ctx.FuncVoid("fillRect", 10, 10, 400, 400);
 
