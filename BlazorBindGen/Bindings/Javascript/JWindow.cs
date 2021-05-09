@@ -1,4 +1,5 @@
 ﻿using Microsoft.JSInterop;
+using System;
 using System.Threading.Tasks;
 
 namespace BlazorBindGen
@@ -76,6 +77,44 @@ namespace BlazorBindGen
         public async void FuncVoidAsync(string funcname, params object[] param)
         {
             await BindGen.Module.InvokeVoidAsync("funcvoidwin", funcname, BindGen.GetParamList(param));
+        }
+
+        public JAwaitResult<T> FuncAwait<T>(string funcname, params object[] param)
+        {
+            return BindGen.Module.Invoke<JAwaitResult<T>>("funcawaitwin", funcname, BindGen.GetParamList(param));
+        }
+
+        public async ValueTask<JAwaitResult<T>> FuncAwaitAsync<T>(string funcname, params object[] param)
+        {
+            return await BindGen.Module.InvokeAsync<JAwaitResult<T>>("funcawaitwin", funcname, BindGen.GetParamList(param));
+        }
+
+        public JAwaitResult<JObj> FuncRefAwait(string funcname, params object[] param)
+        {
+            
+                JObj obj = new();
+                BindGen.Module.InvokeVoid("funcrefawaitwin", funcname, BindGen.GetParamList(param));
+                Console.WriteLine(err);
+                return new() { Err = err, Value = obj };
+           
+
+        }
+
+        public async ValueTask<JAwaitResult<JObj>> FuncRefAwaitAsync(string funcname, params object[] param)
+        {
+            JObj obj = new();
+            var err = await BindGen.Module.InvokeAsync<string>("funcrefawaitwin", funcname, BindGen.GetParamList(param));
+            return new() { Err = err, Value = obj };
+        }
+
+        public string FuncVoidAwait(string funcname, params object[] param)
+        {
+            return BindGen.Module.Invoke<string>("funcrefvoidawaitwin", funcname, BindGen.GetParamList(param));
+        }
+
+        public async ValueTask<string>  FuncVoidAwaitAsync(string funcname, params object[] param)
+        {
+            return await BindGen.Module.InvokeAsync<string>("funcrefawaitwin", funcname, BindGen.GetParamList(param));
         }
     }
 }

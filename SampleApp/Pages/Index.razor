@@ -30,6 +30,6 @@
 		var url=win.PropRef("document").FuncRef("getElementById","mbtn").Val<string>("innerHTML");
 		Console.WriteLine("button has inner text as = "+url);
 
-		win.FuncRef("fetch",win.PropRef("document").FuncRef("getElementById","mbtn"));
+		win.FuncRefAwait("fetch","http://www.google.com");
 	}
 }
