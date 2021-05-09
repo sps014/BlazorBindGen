@@ -4,32 +4,38 @@
 @using static BlazorBindGen.BindGen
 @inject IJSRuntime runtime
 
-<button class="btn btn-primary" id="mbtn" @onclick="Heavy">Do Work</button>
+<button class="btn btn-primary" id="mbtn" @onclick="Heavy">Draw</button><br />
+<canvas id="myCanvas" width="400" height="400"></canvas>
 
 
 @code{
-
+	JWindow win;
 	protected override async Task OnInitializedAsync()
 	{
 		await base.OnInitializedAsync();
-		
-	}
-	protected  async  Task Heavy()
-	{
 		await Init(runtime);
+		win = Window;
+	}
+	protected void Heavy()
+	{
+		/*
+		var c = document.getElementById("myCanvas");
+		var ctx = c.getContext("2d");
+		ar grd = ctx.createRadialGradient(75, 50, 5, 90, 60, 100);
+		grd.addColorStop(0, "red");
+		grd.addColorStop(1, "white");
 
-		var win=Window;
+		ctx.fillStyle = grd;
+		ctx.fillRect(10, 10, 150, 80);
+		*/
+		var canvas = win.PropRef("document").FuncRef("getElementById", "myCanvas");
+		var ctx=canvas.FuncRef("getContext","2d");
+		var grad = ctx.FuncRef("createLinearGradient", 0,0,400,0);
+		grad.FuncVoid("addColorStop", 0, "red");
+		grad.FuncVoid("addColorStop", 1, "white");
+		ctx.SetPropRef("fillStyle",grad);
+		ctx.FuncVoid("fillRect", 10, 10, 400, 400);
 
-		var wth = win.Val<int>("innerWidth");
-
-		Console.WriteLine("inner width = "+wth);
-
-		Console.WriteLine(win.IsFunc("cool") + " " + win.IsFunc("getBinary"));
-		Console.WriteLine(win.IsProp("document") + " " + win.IsProp("getBinary"));
-
-		var url=win.PropRef("document").FuncRef("getElementById","mbtn").Val<string>("innerHTML");
-		Console.WriteLine("button has inner text as = "+url);
-
-		win.FuncRefAwait("fetch","http://www.google.com");
+		//win.FuncRefAwait("fetch","http://www.google.com");
 	}
 }

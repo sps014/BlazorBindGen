@@ -29,6 +29,19 @@ export function isfuncwin(pname) {
     return typeof (window[pname]) == "function";
 }
 
+export function propsetwin(pname, val) {
+    window[pname] = val;
+}
+export function propsetrefwin(pname, h) {
+    window[pname] = props[h];
+}
+export function propset(pname, val, h) {
+    props[h][pname] = val;
+}
+export function propsetref(pname, ph, h) {
+    props[h][pname] = props[ph];
+}
+
 export function func(fname,params, h) {
     return props[h][fname](...paramexpand(params));
 }

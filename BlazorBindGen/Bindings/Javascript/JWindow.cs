@@ -34,6 +34,15 @@ namespace BlazorBindGen
             await BindGen.Module.InvokeVoidAsync("proprefwin", propname, obj.Hash);
             return obj;
         }
+        public void SetVal<T>(string propname,T value)
+        {
+            BindGen.Module.InvokeVoid("propsetwin", propname, value);
+        }
+
+        public void SetPropRef(string propname,JObj obj)
+        {
+            BindGen.Module.InvokeVoid("propsetrefwin", propname, obj.Hash);
+        }
 
         public bool IsFunc(string propname)
         {
@@ -94,8 +103,7 @@ namespace BlazorBindGen
             
                 JObj obj = new();
                 BindGen.Module.InvokeVoid("funcrefawaitwin", funcname, BindGen.GetParamList(param));
-                Console.WriteLine(err);
-                return new() { Err = err, Value = obj };
+                return new() { Err = "", Value = obj };
            
 
         }
@@ -116,5 +124,7 @@ namespace BlazorBindGen
         {
             return await BindGen.Module.InvokeAsync<string>("funcrefawaitwin", funcname, BindGen.GetParamList(param));
         }
+
+        
     }
 }

@@ -38,6 +38,15 @@ namespace BlazorBindGen
             await BindGen.Module.InvokeVoidAsync("propref", propname, obj.Hash, Hash);
             return obj;
         }
+        public void SetVal<T>(string propname, T value)
+        {
+            BindGen.Module.InvokeVoid("propset", propname, value,Hash);
+        }
+
+        public void SetPropRef(string propname, JObj obj)
+        {
+            BindGen.Module.InvokeVoid("propsetref", propname, obj.Hash,Hash);
+        }
 
         public bool IsProp(string propname)
         {
