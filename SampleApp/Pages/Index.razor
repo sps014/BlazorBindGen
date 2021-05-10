@@ -34,11 +34,13 @@
 		grad.FuncVoid("addColorStop", 1, "green");
 		ctx.SetPropRef("fillStyle",grad);
 		ctx.FuncVoid("fillRect", 10, 10, 400, 400);
-
+		var txt = win.PropRef("document").FuncRef("getElementById", "mbtn").Val<string>("innerHTML");
+		Console.WriteLine(":" + txt);
 		//wip 
 		//try
 		//{
 			//var v=await win.FuncAwaitAsync<decimal>("caller");
+			//Console.WriteLine(v);
 			var g =  win.PropRef("document").PropRef("location").To<rec>();
 			Console.WriteLine(g);
 		

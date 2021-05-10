@@ -1,17 +1,11 @@
 ﻿
 let props = new Object();
 let dotnet;
-
-export function initDotnet(net)
-{
+export function initDotnet(net) {
     dotnet = net;
 }
-export function propval(pname,h){
-    return props[h][pname];
-}
-export function propvalwin(pname) {
-    return window[pname];
-}
+export let propval = (pname, h) => props[h][pname];
+export let propvalwin=(pname)=> window[pname];
 export function propref(pname, proph, h) {
     props[proph] = props[h][pname];
 }
@@ -21,18 +15,11 @@ export function proprefwin(pname, proph) {
 export function deleteprop(phash) {
     delete props[phash];
 }
-export function isprop(pname, h) {
-    return typeof (props[h][pname]) != "function" && typeof (props[h][pname]) != undefined;
-}
-export function ispropwin(pname) {
-    return typeof (window[pname]) != "function" && typeof (window[pname]) != undefined;
-}
-export function isfunc(pname, h) {
-    return typeof (props[h][pname]) == "function";
-}
-export function isfuncwin(pname) {
-    return typeof (window[pname]) == "function";
-}
+
+export let isprop = (pname, h) => typeof (props[h][pname]) != "function" && typeof (props[h][pname]) != undefined;
+export let ispropwin = (pname) => typeof (window[pname]) != "function" && typeof (window[pname]) != undefined;
+export let isfunc=(pname, h)=> typeof (props[h][pname]) == "function";
+export let isfuncwin=(pname) => typeof (window[pname]) == "function";
 
 export function propsetwin(pname, val) {
     window[pname] = val;
@@ -46,7 +33,6 @@ export function propset(pname, val, h) {
 export function propsetref(pname, ph, h) {
     props[h][pname] = props[ph];
 }
-
 export function func(fname,params, h) {
     return props[h][fname](...paramexpand(params));
 }
@@ -74,72 +60,41 @@ function paramexpand(param) {
             res.push(param[i].value);
     return res;
 }
-
 export async function funcrefawaitwin(fname, params,eh, ph) {
     let er = "";
-    try {
-        props[ph] = await window[fname](...paramexpand(params));
-    } catch (e)
-    {
-        er = e.toString();
-    }
-
+    try { props[ph] = await window[fname](...paramexpand(params)); }
+    catch (e) { er = e.toString(); }
     dotnet.invokeMethod("errorMessage", eh, er, null);
 }
 export async function funcvoidawaitwin(fname,params,eh) {
     let er = "";
-    try {
-        await window[fname](...paramexpand(params));
-    } catch (e) {
-        er = e.toString();
-    }
-
+    try { await window[fname](...paramexpand(params)); }
+    catch (e) { er = e.toString(); }
     dotnet.invokeMethod("errorMessage", eh, er, null);
 }
 export async function funcawaitwin(fname, params, eh) {
-    let er = "";
-    let v = null;
-    try {
-        v = await window[fname](...paramexpand(params));
-    } catch (e) {
-        er = e.toString();
-    }
+    let er = "", v = null;
+    try { v = await window[fname](...paramexpand(params)); }
+    catch (e) { er = e.toString(); }
     dotnet.invokeMethod("errorMessage", eh, er, v);
 }
-
 export async function funcrefawait(fname, params, eh, ph,h) {
     let er = "";
-    try {
-        props[ph] = await props[h][fname](...paramexpand(params));
-    } catch (e) {
-        er = e.toString();
-    }
-
+    try { props[ph] = await props[h][fname](...paramexpand(params)); }
+    catch (e) { er = e.toString(); }
     dotnet.invokeMethod("errorMessage", eh, er, null);
 }
 export async function funcvoidawait(fname, params, eh,h) {
     let er = "";
-    try {
-        await props[h][fname](...paramexpand(params));
-    } catch (e) {
-        er = e.toString();
-    }
-
+    try { await props[h][fname](...paramexpand(params)); }
+    catch (e) { er = e.toString(); }
     dotnet.invokeMethod("errorMessage", eh, er, null);
 }
-export async function funcawait(fname, params, eh,h) {
-    let er = "";
-    let v = null;
-    try {
-        v = await props[h][fname](...paramexpand(params));
-    } catch (e) {
-        er = e.toString();
-    }
+export async function funcawait(fname, params, eh, h){
+    let er = "",v=null;
+    try { v = await props[h][fname](...paramexpand(params)); }
+    catch (e) { er = e.toString(); }
     dotnet.invokeMethod("errorMessage", eh, er, v);
 }
-export function asjson(h) {
-    return JSON.stringify(props[h]);
-}
-export function to(h) {
-    return props[h];
-}
+export let asjson=(h)=>JSON.stringify(props[h]);
+export let  to=(h)=>props[h];
