@@ -36,13 +36,10 @@
 		ctx.FuncVoid("fillRect", 10, 10, 400, 400);
 
 		//wip 
-		try
-		{
-			await win.FuncVoidAwaitAsync("fetch", "http://www.google.com");
-		}
-		catch(Exception e)
-		{
-			Console.WriteLine(e.Message);
-		}
+		//try
+		//{
+			var v=await win.FuncAwaitAsync<decimal>("caller");
+			Console.WriteLine(v);
+		
 	}
 }

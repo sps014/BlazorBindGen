@@ -84,9 +84,9 @@ export async function funcrefawaitwin(fname, params,eh, ph) {
         er = e.toString();
     }
 
-    dotnet.invokeMethodAsync("errorMessage", eh, er);
+    dotnet.invokeMethod("errorMessage", eh, er, null);
 }
-export async function funcvoidrefawaitwin(fname,params,eh) {
+export async function funcvoidawaitwin(fname,params,eh) {
     let er = "";
     try {
         await window[fname](...paramexpand(params));
@@ -94,5 +94,51 @@ export async function funcvoidrefawaitwin(fname,params,eh) {
         er = e.toString();
     }
 
-    dotnet.invokeMethodAsync("errorMessage", eh, er);
+    dotnet.invokeMethod("errorMessage", eh, er, null);
+}
+export async function funcawaitwin(fname, params, eh) {
+    let er = "";
+    let v = null;
+    try {
+        v = await window[fname](...paramexpand(params));
+    } catch (e) {
+        er = e.toString();
+    }
+    dotnet.invokeMethod("errorMessage", eh, er, v);
+}
+
+export async function funcrefawait(fname, params, eh, ph,h) {
+    let er = "";
+    try {
+        props[ph] = await props[h][fname](...paramexpand(params));
+    } catch (e) {
+        er = e.toString();
+    }
+
+    dotnet.invokeMethod("errorMessage", eh, er, null);
+}
+export async function funcvoidawait(fname, params, eh,h) {
+    let er = "";
+    try {
+        await props[h][fname](...paramexpand(params));
+    } catch (e) {
+        er = e.toString();
+    }
+
+    dotnet.invokeMethod("errorMessage", eh, er, null);
+}
+export async function funcawait(fname, params, eh,h) {
+    let er = "";
+    let v = null;
+    try {
+        v = await props[h][fname](...paramexpand(params));
+    } catch (e) {
+        er = e.toString();
+    }
+    dotnet.invokeMethod("errorMessage", eh, er, v);
+}
+
+window.caller = async ()=>
+{
+    return 5;
 }

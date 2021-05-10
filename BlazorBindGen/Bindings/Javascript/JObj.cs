@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,9 +13,7 @@ namespace BlazorBindGen
     {
         internal int Hash { get; set; }
         internal static int HashTrack = 0;
-        internal static ConcurrentDictionary<long, string> ErrorMessages=new();
-        internal static long ErrorTrack = 0;
-
+        
 
         internal JObj()
         {
@@ -25,13 +24,7 @@ namespace BlazorBindGen
             BindGen.Module.InvokeVoid("deleteprop", Hash);
         }
 
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [JSInvokable("errorMessage")]
-        public void ErrorMessageCallback(long ec, string error)
-        {
-            ErrorMessages.TryAdd(ec, error);
-        }
-
+        
         public T Val<T>(string propname)
         {
             return BindGen.Module.Invoke<T>("propval", propname, Hash);
@@ -104,19 +97,59 @@ namespace BlazorBindGen
             await BindGen.Module.InvokeVoidAsync("funcvoid", funcname, BindGen.GetParamList(param), Hash);
         }
 
-        public ValueTask FuncVoidAwaitAsync(string funcname, params object[] param)
+        public async ValueTask<JObj> FuncRefAwaitAsync(string funcname, params object[] param)
         {
-            throw new NotImplementedException();
+
+            JObj obj = new();
+            long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
+
+            BindGen.Module.InvokeVoid("funcrefawait", funcname, BindGen.GetParamList(param), errH, obj.Hash,Hash);
+            (object, string) tpl;
+            while (!JCallBackHandler.ErrorMessages.TryGetValue(errH, out _))
+            {
+                await Task.Delay(5);
+            }
+            JCallBackHandler.ErrorMessages.TryRemove(errH, out tpl);
+            if (!string.IsNullOrWhiteSpace(tpl.Item2))
+                throw new Exception(tpl.Item2);
+
+            return obj;
+
+
         }
 
-        public ValueTask<T> FuncAwaitAsync<T>(string funcname, params object[] param)
+        public async ValueTask FuncVoidAwaitAsync(string funcname, params object[] param)
         {
-            throw new NotImplementedException();
+            long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
+
+            BindGen.Module.InvokeVoid("funcvoidawait", funcname, BindGen.GetParamList(param), errH,Hash);
+            (object, string) tpl;
+            while (!JCallBackHandler.ErrorMessages.TryGetValue(errH, out _))
+            {
+                await Task.Delay(5);
+            }
+            JCallBackHandler.ErrorMessages.TryRemove(errH, out tpl);
+            if (!string.IsNullOrWhiteSpace(tpl.Item2))
+                throw new Exception(tpl.Item2);
         }
 
-        public ValueTask<JObj> FuncRefAwaitAsync(string funcname, params object[] param)
+        public async ValueTask<T> FuncAwaitAsync<T>(string funcname, params object[] param)
         {
-            throw new NotImplementedException();
+            long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
+
+            BindGen.Module.InvokeVoid("funcawait", funcname, BindGen.GetParamList(param), errH, Hash);
+            (object, string) tpl;
+            while (!JCallBackHandler.ErrorMessages.TryGetValue(errH, out _))
+            {
+                await Task.Delay(5);
+            }
+            JCallBackHandler.ErrorMessages.TryRemove(errH, out tpl);
+            if (!string.IsNullOrWhiteSpace(tpl.Item2))
+                throw new Exception(tpl.Item2);
+            if (tpl.Item1 is null) return default(T);
+            var json = ((JsonElement)tpl.Item1).GetRawText();
+            return JsonSerializer.Deserialize<T>(json);
+
         }
     }
 }
