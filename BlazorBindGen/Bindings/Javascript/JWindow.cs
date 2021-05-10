@@ -111,9 +111,18 @@ namespace BlazorBindGen
 
         }
 
-        public ValueTask FuncVoidAwaitAsync(string funcname, params object[] param)
+        public async ValueTask FuncVoidAwaitAsync(string funcname, params object[] param)
         {
-            throw new NotImplementedException();
+            long errH = Interlocked.Increment(ref JObj.ErrorTrack);
+
+            BindGen.Module.InvokeVoid("funcvoidrefawaitwin", funcname, BindGen.GetParamList(param), errH);
+            while (!JObj.ErrorMessages.TryGetValue(errH, out string _))
+            {
+                await Task.Delay(5);
+            }
+            JObj.ErrorMessages.TryRemove(errH, out string erm);
+            if (!string.IsNullOrWhiteSpace(erm))
+                throw new Exception(erm);
         }
 
         public ValueTask<T> FuncAwaitAsync<T>(string funcname, params object[] param)
