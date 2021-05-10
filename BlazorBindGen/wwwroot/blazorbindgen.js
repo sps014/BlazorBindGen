@@ -137,8 +137,6 @@ export async function funcawait(fname, params, eh,h) {
     }
     dotnet.invokeMethod("errorMessage", eh, er, v);
 }
-
-window.caller = async ()=>
-{
-    return 5;
+export function asjson(h) {
+    return JSON.stringify(props[h]);
 }

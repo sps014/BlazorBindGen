@@ -38,8 +38,9 @@
 		//wip 
 		//try
 		//{
-			var v=await win.FuncAwaitAsync<decimal>("caller");
-			Console.WriteLine(v);
+			//var v=await win.FuncAwaitAsync<decimal>("caller");
+			var g =  win.PropRef("document").PropRef("location").AsJsonText();
+			Console.WriteLine(g);
 		
 	}
 }

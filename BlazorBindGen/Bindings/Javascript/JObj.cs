@@ -151,5 +151,10 @@ namespace BlazorBindGen
             return JsonSerializer.Deserialize<T>(json);
 
         }
+
+        public string AsJsonText()
+        {
+            return BindGen.Module.Invoke<string>("asjson",Hash);
+        }
     }
 }
