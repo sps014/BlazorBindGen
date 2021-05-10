@@ -156,5 +156,9 @@ namespace BlazorBindGen
         {
             return BindGen.Module.Invoke<string>("asjson",Hash);
         }
+        public T To<T>()
+        {
+            return BindGen.Module.Invoke<T>("to", Hash);
+        }
     }
 }

@@ -140,3 +140,6 @@ export async function funcawait(fname, params, eh,h) {
 export function asjson(h) {
     return JSON.stringify(props[h]);
 }
+export function to(h) {
+    return props[h];
+}

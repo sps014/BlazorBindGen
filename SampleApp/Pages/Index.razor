@@ -39,8 +39,10 @@
 		//try
 		//{
 			//var v=await win.FuncAwaitAsync<decimal>("caller");
-			var g =  win.PropRef("document").PropRef("location").AsJsonText();
+			var g =  win.PropRef("document").PropRef("location").To<rec>();
 			Console.WriteLine(g);
 		
 	}
+	record rec(string hash,string host,string hostname);
+
 }
