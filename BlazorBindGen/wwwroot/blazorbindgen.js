@@ -1,6 +1,11 @@
 ﻿
 let props = new Object();
+let dotnet;
 
+export function initDotnet(net)
+{
+    dotnet = net;
+}
 export function propval(pname,h){
     return props[h][pname];
 }
@@ -67,7 +72,6 @@ function paramexpand(param) {
             res.push(props[param[i].value]);
         else
             res.push(param[i].value);
-    
     return res;
 }
 
@@ -100,16 +104,16 @@ export async function funcrefawait(fname, params, ph, h) {
     }
     return {  err:er };
 }
-export async function funcrefawaitwin(fname, params, ph) {
+export async function funcrefawaitwin(fname, params,eh, ph) {
     let er = "";
     try {
         props[ph] = await window[fname](...paramexpand(params));
-    } catch (e) {
-        //console.log(e.toString());
+    } catch (e)
+    {
         er = e.toString();
     }
-    
-    return er;
+
+    dotnet.invokeMethodAsync("errorMessage", eh, er);
 }
 export async function funcvoidawait(fname, params, h) {
     let er = null;

@@ -1,5 +1,7 @@
 ﻿using Microsoft.JSInterop;
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BlazorBindGen
@@ -88,43 +90,35 @@ namespace BlazorBindGen
             await BindGen.Module.InvokeVoidAsync("funcvoidwin", funcname, BindGen.GetParamList(param));
         }
 
-        public JAwaitResult<T> FuncAwait<T>(string funcname, params object[] param)
-        {
-            return BindGen.Module.Invoke<JAwaitResult<T>>("funcawaitwin", funcname, BindGen.GetParamList(param));
-        }
 
-        public async ValueTask<JAwaitResult<T>> FuncAwaitAsync<T>(string funcname, params object[] param)
-        {
-            return await BindGen.Module.InvokeAsync<JAwaitResult<T>>("funcawaitwin", funcname, BindGen.GetParamList(param));
-        }
 
-        public JAwaitResult<JObj> FuncRefAwait(string funcname, params object[] param)
+        public async ValueTask<JObj> FuncRefAwaitAsync(string funcname, params object[] param)
         {
             
-                JObj obj = new();
-                BindGen.Module.InvokeVoid("funcrefawaitwin", funcname, BindGen.GetParamList(param));
-                return new() { Err = "", Value = obj };
+            JObj obj = new();
+            long errH = Interlocked.Increment(ref JObj.ErrorTrack);
+           
+            BindGen.Module.InvokeVoid("funcrefawaitwin", funcname, BindGen.GetParamList(param), errH, obj.Hash);
+            while (!JObj.ErrorMessages.TryGetValue(errH, out string _))
+            {
+                await Task.Delay(5);
+            }
+            JObj.ErrorMessages.TryRemove(errH, out string erm);
+            if (!string.IsNullOrWhiteSpace(erm))
+                throw new Exception(erm);
+            return obj;
            
 
         }
 
-        public async ValueTask<JAwaitResult<JObj>> FuncRefAwaitAsync(string funcname, params object[] param)
+        public ValueTask FuncVoidAwaitAsync(string funcname, params object[] param)
         {
-            JObj obj = new();
-            var err = await BindGen.Module.InvokeAsync<string>("funcrefawaitwin", funcname, BindGen.GetParamList(param));
-            return new() { Err = err, Value = obj };
+            throw new NotImplementedException();
         }
 
-        public string FuncVoidAwait(string funcname, params object[] param)
+        public ValueTask<T> FuncAwaitAsync<T>(string funcname, params object[] param)
         {
-            return BindGen.Module.Invoke<string>("funcrefvoidawaitwin", funcname, BindGen.GetParamList(param));
+            throw new NotImplementedException();
         }
-
-        public async ValueTask<string>  FuncVoidAwaitAsync(string funcname, params object[] param)
-        {
-            return await BindGen.Module.InvokeAsync<string>("funcrefawaitwin", funcname, BindGen.GetParamList(param));
-        }
-
-        
     }
 }

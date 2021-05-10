@@ -15,14 +15,24 @@ namespace BlazorBindGen
         public static IJSInProcessObjectReference Module { get; private set; }
         public static JWindow Window { get; private set; }
 
+        internal static DotNetObjectReference<JObj> DotNet;
+
+
         public static async ValueTask Init(IJSRuntime jsRuntime)
         {
             var runtime = jsRuntime as IJSInProcessRuntime;
             moduleTask = new(() => runtime.InvokeAsync<IJSInProcessObjectReference>(
                "import", "./_content/BlazorBindGen/blazorbindgen.js").AsTask());
 
-            Window = JWindow.CreateJWindowObject();
             Module = await moduleTask.Value;
+            DotNet = DotNetObjectReference.Create(new JObj());
+            Window = JWindow.CreateJWindowObject();
+
+            InitDotNet();
+        }
+        private static void InitDotNet()
+        {
+            Module.InvokeVoid("initDotnet", DotNet);
         }
 
         public static async ValueTask DisposeAsync()

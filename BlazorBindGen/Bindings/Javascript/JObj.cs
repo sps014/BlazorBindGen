@@ -1,5 +1,9 @@
 ﻿using Microsoft.JSInterop;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BlazorBindGen
@@ -8,14 +12,24 @@ namespace BlazorBindGen
     {
         internal int Hash { get; set; }
         internal static int HashTrack = 0;
+        internal static ConcurrentDictionary<long, string> ErrorMessages=new();
+        internal static long ErrorTrack = 0;
+
 
         internal JObj()
         {
-            Hash = HashTrack++;
+            Hash = Interlocked.Increment(ref HashTrack);
         }
         ~JObj()
         {
             BindGen.Module.InvokeVoid("deleteprop", Hash);
+        }
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [JSInvokable("errorMessage")]
+        public void ErrorMessageCallback(long ec, string error)
+        {
+            ErrorMessages.TryAdd(ec, error);
         }
 
         public T Val<T>(string propname)
@@ -89,38 +103,20 @@ namespace BlazorBindGen
         {
             await BindGen.Module.InvokeVoidAsync("funcvoid", funcname, BindGen.GetParamList(param), Hash);
         }
-        public JAwaitResult<T> FuncAwait<T>(string funcname, params object[] param)
+
+        public ValueTask FuncVoidAwaitAsync(string funcname, params object[] param)
         {
-            return BindGen.Module.Invoke<JAwaitResult<T>>("funcawait", funcname, BindGen.GetParamList(param),Hash);
+            throw new NotImplementedException();
         }
 
-        public async ValueTask<JAwaitResult<T>> FuncAwaitAsync<T>(string funcname, params object[] param)
+        public ValueTask<T> FuncAwaitAsync<T>(string funcname, params object[] param)
         {
-            return await BindGen.Module.InvokeAsync<JAwaitResult<T>>("funcawait", funcname, BindGen.GetParamList(param),Hash);
+            throw new NotImplementedException();
         }
 
-        public JAwaitResult<JObj> FuncRefAwait(string funcname, params object[] param)
+        public ValueTask<JObj> FuncRefAwaitAsync(string funcname, params object[] param)
         {
-            JObj obj = new();
-            var err = BindGen.Module.Invoke<string>("funcrefawait", funcname, BindGen.GetParamList(param),Hash);
-            return new() { Err = err, Value = obj };
-        }
-
-        public async ValueTask<JAwaitResult<JObj>> FuncRefAwaitAsync(string funcname, params object[] param)
-        {
-            JObj obj = new();
-            var err = await BindGen.Module.InvokeAsync<string>("funcrefawait", funcname, BindGen.GetParamList(param),Hash);
-            return new() { Err = err, Value = obj };
-        }
-
-        public string FuncVoidAwait(string funcname, params object[] param)
-        {
-            return BindGen.Module.Invoke<string>("funcrefvoidawait", funcname, BindGen.GetParamList(param),Hash);
-        }
-
-        public async ValueTask<string> FuncVoidAwaitAsync(string funcname, params object[] param)
-        {
-            return await BindGen.Module.InvokeAsync<string>("funcrefawait", funcname, BindGen.GetParamList(param),Hash);
+            throw new NotImplementedException();
         }
     }
 }

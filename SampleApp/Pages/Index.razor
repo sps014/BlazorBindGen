@@ -16,15 +16,14 @@
 		await Init(runtime);
 		win = Window;
 	}
-	protected void Heavy()
+	async Task Heavy()
 	{
 		/*
 		var c = document.getElementById("myCanvas");
 		var ctx = c.getContext("2d");
-		ar grd = ctx.createRadialGradient(75, 50, 5, 90, 60, 100);
+		var grd = ctx.createRadialGradient(75, 50, 5, 90, 60, 100);
 		grd.addColorStop(0, "red");
 		grd.addColorStop(1, "white");
-
 		ctx.fillStyle = grd;
 		ctx.fillRect(10, 10, 150, 80);
 		*/
@@ -36,6 +35,14 @@
 		ctx.SetPropRef("fillStyle",grad);
 		ctx.FuncVoid("fillRect", 10, 10, 400, 400);
 
-		//win.FuncRefAwait("fetch","http://www.google.com");
+		//wip 
+		try
+		{
+			var res =await win.FuncRefAwaitAsync("fetch", "http://www.google.com");
+		}
+		catch(Exception e)
+		{
+			Console.WriteLine(e.Message);
+		}
 	}
 }
