@@ -15,5 +15,6 @@ namespace BlazorBindGen
     {
         BASE=0,
         JOBJ=1,
+        CALLBACK=2,
     }
 }

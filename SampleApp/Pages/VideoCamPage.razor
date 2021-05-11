@@ -23,12 +23,15 @@
         /* equivalent js code
         var video = document.querySelector("#videoElement");
 
-        if (navigator.mediaDevices.getUserMedia) {
+        if (navigator.mediaDevices.getUserMedia) 
+        {
           navigator.mediaDevices.getUserMedia({ video: true })
-            .then(function (stream) {
+            .then(function (stream)
+            {
               video.srcObject = stream;
             })
-            .catch(function (err0r) {
+            .catch(function (err0r)
+            {
               console.log("Something went wrong!");
             });
 }
@@ -36,6 +39,7 @@
 
         var video = win.PropRef("document").FuncRef("querySelector", "#videoElement");
         var devices=win.PropRef("navigator").PropRef("mediaDevices");
+
         if(devices.IsFunc("getUserMedia"))
         {
             try

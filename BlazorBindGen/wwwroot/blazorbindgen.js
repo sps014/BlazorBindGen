@@ -52,9 +52,28 @@ export function funcvoidwin(fname, params) {
 function paramexpand(param) {
     var res = [];
     param.forEach((pm) => {
-        res.push(pm.type == 1 ? props[pm.value] : pm.value);
+        let r;
+        switch (pm.type) {
+            case 1:
+                r = props[pm.value];
+                break;
+            case 2:
+                r = callme.bind(pm.value);
+                break;
+            default:
+                r = pm.value;
+                break;
+        }
+        res.push(r);
     });
     return res;
+}
+function callme() {
+    let arg = [];
+    for (var i = 0; i < arguments.length; i++) {
+        arg.push(arguments[i]);
+    }
+    this.invokeMethod("ExecuteInCSharp", arg);
 }
 export async function funcrefawaitwin(fname, params,eh, ph) {
     let er = "";
@@ -93,4 +112,9 @@ export async function funcawait(fname, params, eh, h){
     dotnet.invokeMethod("errorMessage", eh, er, v);
 }
 export let asjson=(h)=>JSON.stringify(props[h]);
-export let  to=(h)=>props[h];
+export let to = (h) => props[h];
+
+window.myFunc=(cb)=>
+{
+    cb(989);
+}

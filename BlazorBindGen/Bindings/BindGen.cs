@@ -57,6 +57,10 @@ namespace BlazorBindGen
                 {
                     list.Add(new() { Value = (p as JObjPtr).Hash, Type=ParamTypes.JOBJ});
                 }
+                else if(p is JCallback)
+                {
+                    list.Add(new() { Type = ParamTypes.CALLBACK, Value = (p as JCallback).DotNet});
+                }
                 else
                 {
                     list.Add(new() { Value = p });

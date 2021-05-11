@@ -16,38 +16,24 @@
 		await Init(runtime);
 		win = Window;
 	}
-	async Task Heavy()
+	void Heavy()
 	{
-		/* equivalent js code 
-		var c = document.getElementById("myCanvas");
-		var ctx = c.getContext("2d");
-		var grd = ctx.createRadialGradient(75, 50, 5, 90, 60, 100);
-		grd.addColorStop(0, "red");
-		grd.addColorStop(1, "white");
-		ctx.fillStyle = grd;
-		ctx.fillRect(10, 10, 150, 80);
-		*/
 		
-		var canvas = win.PropRef("document").FuncRef("getElementById", "myCanvas");
-		
-		var ctx=canvas.FuncRef("getContext","2d");
-		
-		var grad = ctx.FuncRef("createLinearGradient", 0,0,400,0);
-		
-		grad.FuncVoid("addColorStop", 0, "red");
-		
-		grad.FuncVoid("addColorStop", 1, "green");
-		
-		ctx.SetPropRef("fillStyle",grad);
-		
-		ctx.FuncVoid("fillRect", 10, 10, 400, 400);
 
 		var txt = win.PropRef("document").FuncRef("getElementById", "mbtn").Val<string>("innerHTML");
-		Console.WriteLine(":" + txt);
+		//Console.WriteLine(":" + txt);
 
 		var g =  win.PropRef("document").PropRef("location").To<rec>();
-		Console.WriteLine(g);
+		//Console.WriteLine(g);
+		win.FuncVoid("myFunc", new Clb());
 		
+	}
+	class Clb:JCallback
+	{
+		public override void Execute(params object[] args)
+		{
+			Console.WriteLine("got:" + args[0]);
+		}
 	}
 	record rec(string hash,string host,string hostname);
 
