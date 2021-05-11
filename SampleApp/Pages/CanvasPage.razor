@@ -1,10 +1,9 @@
-﻿@page "/"
+﻿@page "/canvas"
 
 @using BlazorBindGen
 @using static BlazorBindGen.BindGen
 @inject IJSRuntime runtime
 
-<button class="btn btn-primary" id="mbtn" @onclick="Heavy">Draw</button><br />
 <canvas id="myCanvas" width="400" height="400"></canvas>
 
 
@@ -15,8 +14,9 @@
 		await base.OnInitializedAsync();
 		await Init(runtime);
 		win = Window;
+		Heavy();
 	}
-	async Task Heavy()
+	void Heavy()
 	{
 		/* equivalent js code 
 		var c = document.getElementById("myCanvas");
@@ -41,14 +41,8 @@
 		ctx.SetPropRef("fillStyle",grad);
 		
 		ctx.FuncVoid("fillRect", 10, 10, 400, 400);
-
-		var txt = win.PropRef("document").FuncRef("getElementById", "mbtn").Val<string>("innerHTML");
-		Console.WriteLine(":" + txt);
-
-		var g =  win.PropRef("document").PropRef("location").To<rec>();
-		Console.WriteLine(g);
+		
 		
 	}
-	record rec(string hash,string host,string hostname);
 
 }
