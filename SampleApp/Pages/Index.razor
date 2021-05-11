@@ -27,6 +27,7 @@
 		ctx.fillStyle = grd;
 		ctx.fillRect(10, 10, 150, 80);
 		*/
+		
 		var canvas = win.PropRef("document").FuncRef("getElementById", "myCanvas");
 		var ctx=canvas.FuncRef("getContext","2d");
 		var grad = ctx.FuncRef("createLinearGradient", 0,0,400,0);
@@ -36,13 +37,8 @@
 		ctx.FuncVoid("fillRect", 10, 10, 400, 400);
 		var txt = win.PropRef("document").FuncRef("getElementById", "mbtn").Val<string>("innerHTML");
 		Console.WriteLine(":" + txt);
-		//wip 
-		//try
-		//{
-			//var v=await win.FuncAwaitAsync<decimal>("caller");
-			//Console.WriteLine(v);
-			var g =  win.PropRef("document").PropRef("location").To<rec>();
-			Console.WriteLine(g);
+		var g =  win.PropRef("document").PropRef("location").To<rec>();
+		Console.WriteLine(g);
 		
 	}
 	record rec(string hash,string host,string hostname);

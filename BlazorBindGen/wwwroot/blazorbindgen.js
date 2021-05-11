@@ -15,12 +15,10 @@ export function proprefwin(pname, proph) {
 export function deleteprop(phash) {
     delete props[phash];
 }
-
 export let isprop = (pname, h) => typeof (props[h][pname]) != "function" && typeof (props[h][pname]) != undefined;
 export let ispropwin = (pname) => typeof (window[pname]) != "function" && typeof (window[pname]) != undefined;
 export let isfunc=(pname, h)=> typeof (props[h][pname]) == "function";
 export let isfuncwin=(pname) => typeof (window[pname]) == "function";
-
 export function propsetwin(pname, val) {
     window[pname] = val;
 }
@@ -53,11 +51,9 @@ export function funcvoidwin(fname, params) {
 }
 function paramexpand(param) {
     var res = [];
-    for (var i = 0; i < param.length; i++) 
-        if (param[i].type == 1)
-            res.push(props[param[i].value]);
-        else
-            res.push(param[i].value);
+    param.forEach((pm) => {
+        res.push(pm.type == 1 ? props[pm.value] : pm.value);
+    });
     return res;
 }
 export async function funcrefawaitwin(fname, params,eh, ph) {

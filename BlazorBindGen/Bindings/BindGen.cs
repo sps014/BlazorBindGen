@@ -16,8 +16,7 @@ namespace BlazorBindGen
         public static JWindow Window { get; private set; }
 
         internal static DotNetObjectReference<JCallBackHandler> DotNet;
-
-
+        
         public static async ValueTask Init(IJSRuntime jsRuntime)
         {
             var runtime = jsRuntime as IJSInProcessRuntime;
@@ -43,6 +42,11 @@ namespace BlazorBindGen
                 await module.DisposeAsync();
             }
         }
+        public static JObj Import(string module)
+        {
+            return new JObj();
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ParamInfo[] GetParamList(params object[] array)
         {
