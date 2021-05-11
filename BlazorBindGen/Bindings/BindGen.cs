@@ -42,9 +42,9 @@ namespace BlazorBindGen
                 await module.DisposeAsync();
             }
         }
-        public static JObj Import(string module)
+        public static JObjPtr Import(string module)
         {
-            return new JObj();
+            return new JObjPtr();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -53,9 +53,9 @@ namespace BlazorBindGen
             var list=new List<ParamInfo>(array.Length);
             foreach (var p in array)
             {
-                if(p is JObj)
+                if(p is JObjPtr)
                 {
-                    list.Add(new() { Value = (p as JObj).Hash, Type=ParamTypes.JOBJ});
+                    list.Add(new() { Value = (p as JObjPtr).Hash, Type=ParamTypes.JOBJ});
                 }
                 else
                 {

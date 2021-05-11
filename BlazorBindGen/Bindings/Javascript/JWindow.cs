@@ -26,15 +26,15 @@ namespace BlazorBindGen
         {
             return await BindGen.Module.InvokeAsync<T>("propvalwin", propname);
         }
-        public JObj PropRef(string propname)
+        public JObjPtr PropRef(string propname)
         {
-            var obj = new JObj();
+            var obj = new JObjPtr();
             BindGen.Module.InvokeVoid("proprefwin", propname, obj.Hash);
             return obj;
         }
-        public async ValueTask<JObj> PropRefAsync(string propname)
+        public async ValueTask<JObjPtr> PropRefAsync(string propname)
         {
-            var obj = new JObj();
+            var obj = new JObjPtr();
             await BindGen.Module.InvokeVoidAsync("proprefwin", propname, obj.Hash);
             return obj;
         }
@@ -43,7 +43,7 @@ namespace BlazorBindGen
             BindGen.Module.InvokeVoid("propsetwin", propname, value);
         }
 
-        public void SetPropRef(string propname,JObj obj)
+        public void SetPropRef(string propname,JObjPtr obj)
         {
             BindGen.Module.InvokeVoid("propsetrefwin", propname, obj.Hash);
         }
@@ -68,16 +68,16 @@ namespace BlazorBindGen
             return await BindGen.Module.InvokeAsync<T>("funcwin", funcname, BindGen.GetParamList(param));
         }
 
-        public JObj FuncRef(string funcname, params object[] param)
+        public JObjPtr FuncRef(string funcname, params object[] param)
         {
-            JObj j= new();
+            JObjPtr j= new();
             BindGen.Module.InvokeVoid("funcrefwin", funcname, BindGen.GetParamList(param), j.Hash);
             return j;
         }
 
-        public async ValueTask<JObj> FuncRefAsync(string funcname, params object[] param)
+        public async ValueTask<JObjPtr> FuncRefAsync(string funcname, params object[] param)
         {
-            JObj j = new();
+            JObjPtr j = new();
             await BindGen.Module.InvokeVoidAsync("funcrefwin", funcname, BindGen.GetParamList(param), j.Hash);
             return j;
         }
@@ -94,10 +94,10 @@ namespace BlazorBindGen
 
 
 
-        public async ValueTask<JObj> FuncRefAwaitAsync(string funcname, params object[] param)
+        public async ValueTask<JObjPtr> FuncRefAwaitAsync(string funcname, params object[] param)
         {
             
-            JObj obj = new();
+            JObjPtr obj = new();
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
            
             BindGen.Module.InvokeVoid("funcrefawaitwin", funcname, BindGen.GetParamList(param), errH, obj.Hash);

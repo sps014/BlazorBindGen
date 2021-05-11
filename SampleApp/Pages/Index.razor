@@ -18,7 +18,7 @@
 	}
 	async Task Heavy()
 	{
-		/*
+		/* equivalent js code 
 		var c = document.getElementById("myCanvas");
 		var ctx = c.getContext("2d");
 		var grd = ctx.createRadialGradient(75, 50, 5, 90, 60, 100);
@@ -35,8 +35,10 @@
 		grad.FuncVoid("addColorStop", 1, "green");
 		ctx.SetPropRef("fillStyle",grad);
 		ctx.FuncVoid("fillRect", 10, 10, 400, 400);
+
 		var txt = win.PropRef("document").FuncRef("getElementById", "mbtn").Val<string>("innerHTML");
 		Console.WriteLine(":" + txt);
+
 		var g =  win.PropRef("document").PropRef("location").To<rec>();
 		Console.WriteLine(g);
 		
