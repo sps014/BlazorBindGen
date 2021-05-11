@@ -113,8 +113,3 @@ export async function funcawait(fname, params, eh, h){
 }
 export let asjson=(h)=>JSON.stringify(props[h]);
 export let to = (h) => props[h];
-
-window.myFunc=(cb)=>
-{
-    cb(989);
-}
