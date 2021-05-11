@@ -18,7 +18,7 @@ export function deleteprop(phash) {
 export let isprop = (pname, h) => typeof (props[h][pname]) != "function" && typeof (props[h][pname]) != undefined;
 export let ispropwin = (pname) => typeof (window[pname]) != "function" && typeof (window[pname]) != undefined;
 export let isfunc=(pname, h)=> typeof (props[h][pname]) == "function";
-export let isfuncwin=(pname) => typeof (window[pname]) == "function";
+export let isfuncwin = (pname) => typeof (window[pname]) == "function";
 export function propsetwin(pname, val) {
     window[pname] = val;
 }
@@ -110,6 +110,18 @@ export async function funcawait(fname, params, eh, h){
     try { v = await props[h][fname](...paramexpand(params)); }
     catch (e) { er = e.toString(); }
     dotnet.invokeMethod("errorMessage", eh, er, v);
+}
+export async function importmod(module, eh) {
+    let er = "";
+    try { await import(module); }
+    catch (e) { er = e.toString(); }
+    dotnet.invokeMethod("errorMessage", eh, er, null);
+}
+export function constructwin(classname, param, h) {
+    props[h] = new window[classname](...paramexpand(param));
+}
+export function construct(classname, param, eh, h) {
+    props[eh] = new props[h][classname](...paramexpand(param));
 }
 export let asjson=(h)=>JSON.stringify(props[h]);
 export let to = (h) => props[h];

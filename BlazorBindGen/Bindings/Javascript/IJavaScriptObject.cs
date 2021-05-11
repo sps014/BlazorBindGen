@@ -25,6 +25,6 @@ namespace BlazorBindGen
         public ValueTask FuncVoidAwaitAsync(string funcname, params object[] param);
         public ValueTask<T> FuncAwaitAsync<T>(string funcname, params object[] param);
         public ValueTask<JObjPtr> FuncRefAwaitAsync(string funcname, params object[] param);
-
+        public JObjPtr Construct(string classname, params object[] param);
     }
 }

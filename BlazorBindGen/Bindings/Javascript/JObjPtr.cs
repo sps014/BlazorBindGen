@@ -66,35 +66,49 @@ namespace BlazorBindGen
 
         public T Func<T>(string funcname, params object[] param)
         {
-            return BindGen.Module.Invoke<T>("func", funcname, BindGen.GetParamList(param), Hash);
+            var args = BindGen.GetParamList(param);
+            var res= BindGen.Module.Invoke<T>("func", funcname, args, Hash);
+            BindGen.ParamPool.Return(args);
+            return res;
         }
 
         public async ValueTask<T> FuncAsync<T>(string funcname, params object[] param)
         {
-            return await BindGen.Module.InvokeAsync<T>("func", funcname, BindGen.GetParamList(param), Hash);
+            var args = BindGen.GetParamList(param);
+            var res= await BindGen.Module.InvokeAsync<T>("func", funcname, args, Hash);
+            BindGen.ParamPool.Return(args);
+            return res;
         }
 
         public JObjPtr FuncRef(string funcname, params object[] param)
         {
+            var args = BindGen.GetParamList(param);
             JObjPtr j = new();
-            BindGen.Module.InvokeVoid("funcref", funcname, BindGen.GetParamList(param), j.Hash,Hash);
+            BindGen.Module.InvokeVoid("funcref", funcname,args, j.Hash,Hash);
+            BindGen.ParamPool.Return(args);
             return j;
         }
 
         public async ValueTask<JObjPtr> FuncRefAsync(string funcname, params object[] param)
         {
             JObjPtr j = new();
-            await BindGen.Module.InvokeVoidAsync("funcref", funcname, BindGen.GetParamList(param), j.Hash,Hash);
+            var args = BindGen.GetParamList(param);
+            await BindGen.Module.InvokeVoidAsync("funcref", funcname, args, j.Hash,Hash);
+            BindGen.ParamPool.Return(args);
             return j;
         }
         public void FuncVoid(string funcname, params object[] param)
         {
-            BindGen.Module.InvokeVoid("funcvoid", funcname, BindGen.GetParamList(param), Hash);
+            var args = BindGen.GetParamList(param);
+            BindGen.Module.InvokeVoid("funcvoid", funcname, args, Hash);
+            BindGen.ParamPool.Return(args);
         }
 
         public async void FuncVoidAsync(string funcname, params object[] param)
         {
-            await BindGen.Module.InvokeVoidAsync("funcvoid", funcname, BindGen.GetParamList(param), Hash);
+            var args = BindGen.GetParamList(param);
+            await BindGen.Module.InvokeVoidAsync("funcvoid", funcname, args, Hash);
+            BindGen.ParamPool.Return(args);
         }
 
         public async ValueTask<JObjPtr> FuncRefAwaitAsync(string funcname, params object[] param)
@@ -102,8 +116,11 @@ namespace BlazorBindGen
 
             JObjPtr obj = new();
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
+            var args = BindGen.GetParamList(param);
 
-            BindGen.Module.InvokeVoid("funcrefawait", funcname, BindGen.GetParamList(param), errH, obj.Hash,Hash);
+            BindGen.Module.InvokeVoid("funcrefawait", funcname, args, errH, obj.Hash,Hash);
+            BindGen.ParamPool.Return(args);
+
             (object, string) tpl;
             while (!JCallBackHandler.ErrorMessages.TryGetValue(errH, out _))
             {
@@ -121,8 +138,10 @@ namespace BlazorBindGen
         public async ValueTask FuncVoidAwaitAsync(string funcname, params object[] param)
         {
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
+            var args = BindGen.GetParamList(param);
+            BindGen.Module.InvokeVoid("funcvoidawait", funcname, args, errH,Hash);
+            BindGen.ParamPool.Return(args);
 
-            BindGen.Module.InvokeVoid("funcvoidawait", funcname, BindGen.GetParamList(param), errH,Hash);
             (object, string) tpl;
             while (!JCallBackHandler.ErrorMessages.TryGetValue(errH, out _))
             {
@@ -136,8 +155,11 @@ namespace BlazorBindGen
         public async ValueTask<T> FuncAwaitAsync<T>(string funcname, params object[] param)
         {
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
+            var args = BindGen.GetParamList(param);
 
-            BindGen.Module.InvokeVoid("funcawait", funcname, BindGen.GetParamList(param), errH, Hash);
+            BindGen.Module.InvokeVoid("funcawait", funcname, args, errH, Hash);
+            BindGen.ParamPool.Return(args);
+
             (object, string) tpl;
             while (!JCallBackHandler.ErrorMessages.TryGetValue(errH, out _))
             {
@@ -159,6 +181,15 @@ namespace BlazorBindGen
         public T To<T>()
         {
             return BindGen.Module.Invoke<T>("to", Hash);
+        }
+
+        public JObjPtr Construct(string classname, params object[] param)
+        {
+            JObjPtr ptr = new();
+            var args = BindGen.GetParamList(param);
+            BindGen.Module.InvokeVoid("construct", classname, args,ptr.Hash,Hash);
+            BindGen.ParamPool.Return(args);
+            return ptr;
         }
     }
 }
