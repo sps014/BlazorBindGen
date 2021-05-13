@@ -48,7 +48,7 @@ namespace BlazorBindGen
         public static JObjPtr SetArrayToRef(byte[] array)
         {
             var obj = new JObjPtr();
-            BindGen.Module.InvokeUnmarshalled<byte[], int, object>("setarrayref", array, obj.Hash);
+            _ = BindGen.Module.InvokeUnmarshalled<byte[], int, object>("setarrayref", array, obj.Hash);
             return obj;
         }
         public static byte[] GetArrayFromRef(JObjPtr jsUint8ArrayRef)
@@ -57,7 +57,7 @@ namespace BlazorBindGen
                 throw new Exception("Invalid js array reference, make sure the pointer to  array from js should be correct.");
             var l = FastLength(jsUint8ArrayRef);
             var arr = new byte[l];
-            BindGen.Module.InvokeUnmarshalled<byte[], int, object>("getarrayref", arr, jsUint8ArrayRef.Hash);
+            _ = Module.InvokeUnmarshalled<byte[], int, object>("getarrayref", arr, jsUint8ArrayRef.Hash);
             return arr;
         }
         internal static long FastLength(JObjPtr jsUint8ArrayRef)
