@@ -45,11 +45,30 @@ namespace BlazorBindGen
                 await module.DisposeAsync();
             }
         }
+        public static JObjPtr SetArrayToRef(byte[] array)
+        {
+            var obj = new JObjPtr();
+            BindGen.Module.InvokeUnmarshalled<byte[], int, object>("setarrayref", array, obj.Hash);
+            return obj;
+        }
+        public static byte[] GetArrayFromRef(JObjPtr jsUint8ArrayRef)
+        {
+            if (!jsUint8ArrayRef.IsProp("length"))
+                throw new Exception("Invalid js array reference, make sure the pointer to  array from js should be correct.");
+            var l = FastLength(jsUint8ArrayRef);
+            var arr = new byte[l];
+            BindGen.Module.InvokeUnmarshalled<byte[], int, object>("getarrayref", arr, jsUint8ArrayRef.Hash);
+            return arr;
+        }
+        internal static long FastLength(JObjPtr jsUint8ArrayRef)
+        {
+            return Module.InvokeUnmarshalled<int, int>("fastlength", jsUint8ArrayRef.Hash);
+        }
         public static async ValueTask Import(string moduleURL)
         {
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
 
-            Module.InvokeUnmarshalled<string,int,object>("importmod", moduleURL,(int)errH);
+            Module.InvokeUnmarshalled<string, int, object>("importmod", moduleURL, (int)errH);
 
             await ErrorHandler.HoldVoid(errH);
         }

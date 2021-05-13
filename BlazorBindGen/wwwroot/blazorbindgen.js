@@ -87,5 +87,16 @@ export async function importmod(module, eh) {
 export function construct(classname, param, eh, h) {
     props[eh] = new props[h][classname](...paramexpand(param));
 }
+export function setarrayref(array, eh) {
+    props[eh] = Blazor.platform.toUint8Array(array);
+}
+export function getarrayref(array, eh) {
+    Blazor.platform.toUint8Array(array).set(props[eh]);
+}
+export function fastlength(h) {
+    return props[h].byteLength;
+}
 export let asjson=(h)=>JSON.stringify(props[h]);
 export let to = (h) => props[h];
+
+window.arr = new Uint8Array(5);

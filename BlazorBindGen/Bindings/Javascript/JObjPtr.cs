@@ -167,5 +167,7 @@ namespace BlazorBindGen
             BindGen.ParamPool.Return(args);
             return ptr;
         }
+
+      
     }
 }
