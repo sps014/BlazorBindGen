@@ -21,7 +21,7 @@ namespace BlazorBindGen
         }
         ~JObjPtr()
         {
-            BindGen.Module.InvokeVoid("deleteprop", Hash);
+            BindGen.Module.InvokeUnmarshalled<int,object>("deleteprop", Hash);
         }
 
         
@@ -36,7 +36,7 @@ namespace BlazorBindGen
         public JObjPtr PropRef(string propname)
         {
             var obj = new JObjPtr();
-            BindGen.Module.InvokeVoid("propref", propname, obj.Hash, Hash);
+            BindGen.Module.InvokeUnmarshalled<string,int,int,object>("propref", propname, obj.Hash, Hash);
             return obj;
         }
         public async ValueTask<JObjPtr> PropRefAsync(string propname)
@@ -57,7 +57,7 @@ namespace BlazorBindGen
 
         public bool IsProp(string propname)
         {
-            return BindGen.Module.Invoke<bool>("isprop", propname, Hash);
+            return BindGen.Module.InvokeUnmarshalled<string,int,bool>("isprop", propname, Hash);
         }
         public bool IsFunc(string propname)
         {

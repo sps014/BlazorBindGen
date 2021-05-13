@@ -12,22 +12,21 @@ namespace BlazorBindGen
 {
     public static class BindGen
     {
-        private static Lazy<Task<IJSInProcessObjectReference>> moduleTask;
-        public static IJSInProcessObjectReference Module { get; private set; }
+        private static Lazy<Task<IJSUnmarshalledObjectReference>> moduleTask;
+        public static IJSUnmarshalledObjectReference Module { get; private set; }
         public static JWindow Window { get; private set; }
 
         internal static DotNetObjectReference<JCallBackHandler> DotNet;
 
         internal static ArrayPool<ParamInfo> ParamPool = ArrayPool<ParamInfo>.Shared;
         internal static IJSInProcessRuntime Runtime { get; private set; }
-
         public static async ValueTask Init(IJSRuntime jsRuntime)
         {
             Runtime = jsRuntime as IJSInProcessRuntime;
-            moduleTask = new(() => Runtime.InvokeAsync<IJSInProcessObjectReference>(
+            moduleTask = new(() => Runtime.InvokeAsync<IJSUnmarshalledObjectReference>(
                "import", "./_content/BlazorBindGen/blazorbindgen.js").AsTask());
-
             Module = await moduleTask.Value;
+
             DotNet = DotNetObjectReference.Create(new JCallBackHandler());
             Window = JWindow.CreateJWindowObject();
 

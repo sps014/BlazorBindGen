@@ -1,30 +1,24 @@
-﻿
-let props = new Object();
+﻿let props = new Object();
 let dotnet;
 export function initDotnet(net) {
     dotnet = net;
 }
-export let propval = (pname, h) => props[h][pname];
-export let propvalwin=(pname)=> window[pname];
-export function propref(pname, proph, h) {
-    props[proph] = props[h][pname];
+export function createwin(h) {
+    props[h] = window;
 }
-export function proprefwin(pname, proph) {
-    props[proph] = window[pname];
+export let propval = (pname, h) => props[h][pname];
+export let propvalwin = (pname) => window[pname];
+export function propref(pname, proph, h) {
+    props[proph] = props[h][BINDING.conv_string(pname)];
 }
 export function deleteprop(phash) {
     delete props[phash];
 }
-export let isprop = (pname, h) => typeof (props[h][pname]) != "function" && typeof (props[h][pname]) != undefined;
-export let ispropwin = (pname) => typeof (window[pname]) != "function" && typeof (window[pname]) != undefined;
-export let isfunc=(pname, h)=> typeof (props[h][pname]) == "function";
-export let isfuncwin = (pname) => typeof (window[pname]) == "function";
-export function propsetwin(pname, val) {
-    window[pname] = val;
-}
-export function propsetrefwin(pname, h) {
-    window[pname] = props[h];
-}
+export let isprop = (pname, h) => typeof (props[h][BINDING.conv_string(pname)]) != "function"
+    && typeof (props[h][BINDING.conv_string(pname)]) != undefined;
+
+export let isfunc = (pname, h) => typeof (props[h][pname]) == "function";
+
 export function propset(pname, val, h) {
     props[h][pname] = val;
 }
@@ -34,20 +28,11 @@ export function propsetref(pname, ph, h) {
 export function func(fname,params, h) {
     return props[h][fname](...paramexpand(params));
 }
-export function funcwin(fname, params) {
-    return window[fname](...paramexpand(params));
-}
 export function funcref(fname, params, ph, h) {
     props[ph] = props[h][fname](...paramexpand(params));
 }
-export function funcrefwin(fname, params, ph) {
-    props[ph] = window[fname](...paramexpand(params));
-}
 export function funcvoid(fname, params, h) {
     props[h][fname](...paramexpand(params));
-}
-export function funcvoidwin(fname, params) {
-    window[fname](...paramexpand(params));
 }
 function paramexpand(param) {
     var res = [];
@@ -58,7 +43,7 @@ function paramexpand(param) {
                 r = props[pm.value];
                 break;
             case 2:
-                r = callme.bind(pm.value);
+                r = callbackHandler.bind(pm.value);
                 break;
             default:
                 r = pm.value;
@@ -68,30 +53,12 @@ function paramexpand(param) {
     });
     return res;
 }
-function callme() {
+function callbackHandler() {
     let arg = [];
     for (var i = 0; i < arguments.length; i++) {
         arg.push(arguments[i]);
     }
     this.invokeMethod("ExecuteInCSharp", arg);
-}
-export async function funcrefawaitwin(fname, params,eh, ph) {
-    let er = "";
-    try { props[ph] = await window[fname](...paramexpand(params)); }
-    catch (e) { er = e.toString(); }
-    dotnet.invokeMethod("errorMessage", eh, er, null);
-}
-export async function funcvoidawaitwin(fname,params,eh) {
-    let er = "";
-    try { await window[fname](...paramexpand(params)); }
-    catch (e) { er = e.toString(); }
-    dotnet.invokeMethod("errorMessage", eh, er, null);
-}
-export async function funcawaitwin(fname, params, eh) {
-    let er = "", v = null;
-    try { v = await window[fname](...paramexpand(params)); }
-    catch (e) { er = e.toString(); }
-    dotnet.invokeMethod("errorMessage", eh, er, v);
 }
 export async function funcrefawait(fname, params, eh, ph,h) {
     let er = "";
@@ -116,9 +83,6 @@ export async function importmod(module, eh) {
     try { await import(module); }
     catch (e) { er = e.toString(); }
     dotnet.invokeMethod("errorMessage", eh, er, null);
-}
-export function constructwin(classname, param, h) {
-    props[h] = new window[classname](...paramexpand(param));
 }
 export function construct(classname, param, eh, h) {
     props[eh] = new props[h][classname](...paramexpand(param));
