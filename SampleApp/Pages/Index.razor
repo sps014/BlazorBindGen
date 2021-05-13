@@ -19,23 +19,23 @@
 	async Task Heavy()
 	{
 		await Import("https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/p5.min.js");
-		var ver=win.Construct("p5").Val<string>("VERSION");
+		var ver = win.Construct("p5").Val<string>("VERSION");
 		Console.WriteLine(ver);
 
 		var txt = win.PropRef("document").FuncRef("getElementById", "mbtn").Val<string>("innerHTML");
 		//Console.WriteLine(":" + txt);
 
-		var g =  win.PropRef("document").PropRef("location").To<rec>();
+		var g = win.PropRef("document").PropRef("location").To<rec>();
 		//Console.WriteLine(g);
 
 	}
-	class Clb:JCallback
+	class Clb : JCallback
 	{
 		public override void Execute(params object[] args)
 		{
-			Console.WriteLine("got:" + args[0]);
+			Console.WriteLine("got: " + args[0]);
 		}
 	}
-	record rec(string hash,string host,string hostname);
+	record rec(string hash, string host, string hostname);
 
 }
