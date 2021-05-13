@@ -17,13 +17,13 @@ export function deleteprop(phash) {
 export let isprop = (pname, h) => typeof (props[h][BINDING.conv_string(pname)]) != "function"
     && typeof (props[h][BINDING.conv_string(pname)]) != undefined;
 
-export let isfunc = (pname, h) => typeof (props[h][pname]) == "function";
+export let isfunc = (pname, h) => typeof (props[h][BINDING.conv_string(pname)]) == "function";
 
 export function propset(pname, val, h) {
     props[h][pname] = val;
 }
 export function propsetref(pname, ph, h) {
-    props[h][pname] = props[ph];
+    props[h][BINDING.conv_string(pname)] = props[ph];
 }
 export function func(fname,params, h) {
     return props[h][fname](...paramexpand(params));
@@ -80,7 +80,7 @@ export async function funcawait(fname, params, eh, h){
 }
 export async function importmod(module, eh) {
     let er = "";
-    try { await import(module); }
+    try { await import(BINDING.conv_string(module)); }
     catch (e) { er = e.toString(); }
     dotnet.invokeMethod("errorMessage", eh, er, null);
 }

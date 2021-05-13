@@ -49,16 +49,9 @@ namespace BlazorBindGen
         {
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
 
-            Module.InvokeVoid("importmod", moduleURL,errH);
+            Module.InvokeUnmarshalled<string,int,object>("importmod", moduleURL,(int)errH);
 
-            (object, string) tpl;
-            while (!JCallBackHandler.ErrorMessages.TryGetValue(errH, out _))
-            {
-                await Task.Delay(5);
-            }
-            JCallBackHandler.ErrorMessages.TryRemove(errH, out tpl);
-            if (!string.IsNullOrWhiteSpace(tpl.Item2))
-                throw new Exception(tpl.Item2);
+            await ErrorHandler.HoldVoid(errH);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

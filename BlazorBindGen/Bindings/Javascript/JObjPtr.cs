@@ -52,7 +52,7 @@ namespace BlazorBindGen
 
         public void SetPropRef(string propname, JObjPtr obj)
         {
-            BindGen.Module.InvokeVoid("propsetref", propname, obj.Hash,Hash);
+            BindGen.Module.InvokeUnmarshalled<string,int,int,object>("propsetref", propname, obj.Hash,Hash);
         }
 
         public bool IsProp(string propname)
@@ -61,7 +61,7 @@ namespace BlazorBindGen
         }
         public bool IsFunc(string propname)
         {
-            return BindGen.Module.Invoke<bool>("isfunc", propname, Hash);
+            return BindGen.Module.InvokeUnmarshalled<string,int,bool>("isfunc", propname, Hash);
         }
 
         public T Func<T>(string funcname, params object[] param)
@@ -121,14 +121,7 @@ namespace BlazorBindGen
             BindGen.Module.InvokeVoid("funcrefawait", funcname, args, errH, obj.Hash,Hash);
             BindGen.ParamPool.Return(args);
 
-            (object, string) tpl;
-            while (!JCallBackHandler.ErrorMessages.TryGetValue(errH, out _))
-            {
-                await Task.Delay(5);
-            }
-            JCallBackHandler.ErrorMessages.TryRemove(errH, out tpl);
-            if (!string.IsNullOrWhiteSpace(tpl.Item2))
-                throw new Exception(tpl.Item2);
+            await ErrorHandler.HoldRef(errH);
 
             return obj;
 
@@ -142,14 +135,7 @@ namespace BlazorBindGen
             BindGen.Module.InvokeVoid("funcvoidawait", funcname, args, errH,Hash);
             BindGen.ParamPool.Return(args);
 
-            (object, string) tpl;
-            while (!JCallBackHandler.ErrorMessages.TryGetValue(errH, out _))
-            {
-                await Task.Delay(5);
-            }
-            JCallBackHandler.ErrorMessages.TryRemove(errH, out tpl);
-            if (!string.IsNullOrWhiteSpace(tpl.Item2))
-                throw new Exception(tpl.Item2);
+            await ErrorHandler.HoldVoid(errH);
         }
 
         public async ValueTask<T> FuncAwaitAsync<T>(string funcname, params object[] param)
@@ -160,17 +146,7 @@ namespace BlazorBindGen
             BindGen.Module.InvokeVoid("funcawait", funcname, args, errH, Hash);
             BindGen.ParamPool.Return(args);
 
-            (object, string) tpl;
-            while (!JCallBackHandler.ErrorMessages.TryGetValue(errH, out _))
-            {
-                await Task.Delay(5);
-            }
-            JCallBackHandler.ErrorMessages.TryRemove(errH, out tpl);
-            if (!string.IsNullOrWhiteSpace(tpl.Item2))
-                throw new Exception(tpl.Item2);
-            if (tpl.Item1 is null) return default(T);
-            var json = ((JsonElement)tpl.Item1).GetRawText();
-            return JsonSerializer.Deserialize<T>(json);
+            return await ErrorHandler.Hold<T>(errH);
 
         }
 
