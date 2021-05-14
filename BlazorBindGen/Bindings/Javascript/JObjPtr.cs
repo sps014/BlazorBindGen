@@ -168,10 +168,9 @@ namespace BlazorBindGen
             return ptr;
         }
 
-        public void SetPropCallBack(string propname, Action<object[]> action)
+        public void SetPropCallBack(string propname, JCallback callback)
         {
-            var cbk = new JCallback(action);
-            BindGen.Module.InvokeVoid("setcallback",propname, cbk.DotNet, Hash);
+            BindGen.Module.InvokeVoid("setcallback",propname, callback.DotNet, Hash);
         }
     }
 }

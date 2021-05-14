@@ -27,17 +27,24 @@
 		Console.Clear();
 		var ml5 = win.PropRef("ml5");
 		//const sentiment = ml5.sentiment('movieReviews', modelReady);
-		Action<object[]> ModelLoaded=DoJob;
-		sentiment=ml5.CallRef("sentiment","movieReviews",ModelLoaded);
+		sentiment=ml5.CallRef("sentiment","movieReviews",new Clb() {index=this });
 	}
 	
 	void DoJob(params object[] args)
 	{
-		Console.WriteLine("Model Loaded");
-		var v=sentiment.Call<Score>("predict", "best product always recommending you guys to buy");
-		Console.WriteLine(v.score);		
+		
 	}
 	record Score(double score);
 
+	class Clb : JCallback
+	{
+		public Index index;
+		public override void Execute(params object[] args)
+		{
+			Console.WriteLine("Model Loaded");
+		    var v=index.sentiment.Call<Score>("predict", "best product always recommending you guys to buy");
+			Console.WriteLine(v.score);		
+		}
+	}
 }
 	

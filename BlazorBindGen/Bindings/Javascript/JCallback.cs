@@ -1,26 +1,29 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.JSInterop;
 
 namespace BlazorBindGen
 {
-    internal class JCallback
+    public abstract class JCallback
     {
-        internal DotNetObjectReference<JCallback> DotNet;
+        public abstract void Execute(params object[] args);
 
-        public Action<object[]> Executor { get; }
-        public JCallback([NotNull] Action<object[]> action)
+        internal DotNetObjectReference<JCallback> DotNet;
+        public JCallback()
         {
             DotNet = DotNetObjectReference.Create(this);
-            Executor = action;
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         [JSInvokable("ExecuteInCSharp")]
         public void CallMe(object[] obj)
         {
-            Executor.Invoke(obj);
+            Execute(obj);
         }
     }
     
