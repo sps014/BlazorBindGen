@@ -20,6 +20,5 @@ namespace BlazorBindGen
         {
             ErrorMessages.TryAdd(ec, (v,error));
         }
-
     }
 }

@@ -1,16 +1,23 @@
 ﻿using System;
+using System.Buffers;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+<<<<<<< Updated upstream
+=======
+using System.Linq;
+using System.Threading.Tasks;
+>>>>>>> Stashed changes
 using Microsoft.JSInterop;
 
 namespace BlazorBindGen
 {
-    internal class JCallback
+    public class JCallback
     {
         internal DotNetObjectReference<JCallback> DotNet;
 
-        public Action<object[]> Executor { get; }
-        public JCallback([NotNull] Action<object[]> action)
+        public Action<JObjPtr[]> Executor { get; }
+        public JCallback([NotNull] Action<JObjPtr[]> action)
         {
             DotNet = DotNetObjectReference.Create(this);
             Executor = action;
@@ -18,9 +25,27 @@ namespace BlazorBindGen
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         [JSInvokable("ExecuteInCSharp")]
-        public void CallMe(object[] obj)
+        public void CallMe(int hash,int argLength)
         {
+<<<<<<< Updated upstream
             Executor.Invoke(obj);
+=======
+            var ptr=GetArgAsPtr(hash);
+            var arr=new JObjPtr[argLength];
+
+            for (int i = 0; i < argLength; i++)
+            {
+                Console.WriteLine(argLength);
+                arr[i] = ptr.PropRef($"{i}");
+            }
+            Executor.Invoke(arr);
+        }
+        private JObjPtr GetArgAsPtr(int hash)
+        {
+            JObjPtr ptrs =new();
+            BindGen.Module.InvokeVoid("cleanupargs",hash,ptrs.Hash);
+            return ptrs;
+>>>>>>> Stashed changes
         }
     }
     

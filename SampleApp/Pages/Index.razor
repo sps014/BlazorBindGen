@@ -26,6 +26,7 @@
 		await Import("https://unpkg.com/ml5@latest/dist/ml5.min.js");
 		Console.Clear();
 		var ml5 = win.PropRef("ml5");
+<<<<<<< Updated upstream
 		//const sentiment = ml5.sentiment('movieReviews', modelReady);
 		Action<object[]> ModelLoaded=DoJob;
 		sentiment=ml5.CallRef("sentiment","movieReviews",ModelLoaded);
@@ -36,6 +37,21 @@
 		Console.WriteLine("Model Loaded");
 		var v=sentiment.Call<Score>("predict", "best product always recommending you guys to buy");
 		Console.WriteLine(v.score);		
+=======
+		Action<JObjPtr[]> ModelLoaded=OnModelLoaded;
+		sentiment= ml5.CallRef("sentiment","movieReviews",ModelLoaded);
+
+	}
+	void Predict()
+	{
+		var v=sentiment.Call<Score>("predict", predictText);
+		Console.WriteLine(v.score);
+	}
+	
+	void OnModelLoaded(params JObjPtr[] args)
+	{
+		Console.WriteLine("Model Loaded: "+args.Length);
+>>>>>>> Stashed changes
 	}
 	record Score(double score);
 

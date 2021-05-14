@@ -101,5 +101,18 @@ function callbackHandler() {
     for (var i = 0; i < arguments.length; i++) {
         arg.push(arguments[i]);
     }
+<<<<<<< Updated upstream
     this.invokeMethod("ExecuteInCSharp",arg);
 }
+=======
+    let h = cbCount++;
+    callbackResult[h] = arg;
+    this.invokeMethodAsync("ExecuteInCSharp", h, arg.length);
+}
+export function cleanupargs(cbh, h) {
+    props[h] = callbackResult[cbh];
+    delete callbackResult[cbh];
+}
+let callbackResult = new Object();
+let cbCount = 0;
+>>>>>>> Stashed changes
