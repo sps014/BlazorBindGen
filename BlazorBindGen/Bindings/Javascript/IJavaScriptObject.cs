@@ -12,7 +12,7 @@ namespace BlazorBindGen
         public ValueTask<JObjPtr> PropRefAsync(string propname);
         public void SetPropVal<T>(string propname,T value);
         public void SetPropRef(string propname,JObjPtr obj);
-        public void SetPropCallBack(string propname, JCallback callback);
+        public void SetPropCallBack(string propname, Action<object[]> callback);
         public bool IsProp(string propname);
         public bool IsFunc(string propname);
         public T Call<T>(string funcname, params object[] param);
