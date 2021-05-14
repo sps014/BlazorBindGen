@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.JSInterop;
 
 namespace BlazorBindGen
@@ -20,7 +21,8 @@ namespace BlazorBindGen
         [JSInvokable("ExecuteInCSharp")]
         public void CallMe(object[] obj)
         {
-            Executor.Invoke(obj);
+            Console.WriteLine("Loaded");
+            //Executor.Invoke(obj);
         }
     }
     

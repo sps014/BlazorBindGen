@@ -38,25 +38,25 @@ export async function funcrefawait(fname, params, eh, ph,h) {
     let er = "";
     try { props[ph] = await props[h][fname](...paramexpand(params)); }
     catch (e) { er = e.toString(); }
-    dotnet.invokeMethod("errorMessage", eh, er, null);
+    dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }
 export async function funcvoidawait(fname, params, eh,h) {
     let er = "";
     try { await props[h][fname](...paramexpand(params)); }
     catch (e) { er = e.toString(); }
-    dotnet.invokeMethod("errorMessage", eh, er, null);
+    dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }
 export async function funcawait(fname, params, eh, h){
     let er = "",v=null;
     try { v = await props[h][fname](...paramexpand(params)); }
     catch (e) { er = e.toString(); }
-    dotnet.invokeMethod("errorMessage", eh, er, v);
+    dotnet.invokeMethodAsync("errorMessage", eh, er, v);
 }
 export async function importmod(module, eh) {
     let er = "";
     try { await import(BINDING.conv_string(module)); }
     catch (e) { er = e.toString(); }
-    dotnet.invokeMethod("errorMessage", eh, er, null);
+    dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }
 export function construct(classname, param, eh, h) {
     props[eh] = new props[h][classname](...paramexpand(param));
@@ -96,10 +96,10 @@ function paramexpand(param) {
     });
     return res;
 }
-function callbackHandler() {
+async function callbackHandler() {
     let arg = [];
     for (var i = 0; i < arguments.length; i++) {
         arg.push(arguments[i]);
     }
-    this.invokeMethod("ExecuteInCSharp",arg);
+    this.invokeMethodAsync("ExecuteInCSharp",arg);
 }
