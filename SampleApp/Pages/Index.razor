@@ -4,44 +4,31 @@
 @using static BlazorBindGen.BindGen
 @inject IJSRuntime runtime
 
-<button class="btn btn-primary" id="mbtn" @onclick="Heavy">Draw</button><br />
-<canvas id="myCanvas" width="400" height="400"></canvas>
-<div @ref="divElm"></div>
+<input type="text" class="form-controls" @bind="predictText" placeholder="write review here " />
+<button class="btn btn-primary" id="mbtn" @onclick="Predict">Draw</button><br />
 
 @code
 {
 	JWindow win;
-	ElementReference divElm;
-
 	public JObjPtr sentiment;
-
+	string predictText;
 	protected override async Task OnInitializedAsync()
 	{
 		await base.OnInitializedAsync();
 		await Init(runtime);
 		win = Window;
+		await Heavy();
 	}
 	async Task Heavy()
 	{
 		await Import("https://unpkg.com/ml5@latest/dist/ml5.min.js");
 		Console.Clear();
 		var ml5 = win.PropRef("ml5");
-<<<<<<< Updated upstream
 		//const sentiment = ml5.sentiment('movieReviews', modelReady);
-		Action<object[]> ModelLoaded=DoJob;
+		Action<JObjPtr[]> ModelLoaded=OnModelLoaded;
 		sentiment=ml5.CallRef("sentiment","movieReviews",ModelLoaded);
 	}
 	
-	void DoJob(params object[] args)
-	{
-		Console.WriteLine("Model Loaded");
-		var v=sentiment.Call<Score>("predict", "best product always recommending you guys to buy");
-		Console.WriteLine(v.score);		
-=======
-		Action<JObjPtr[]> ModelLoaded=OnModelLoaded;
-		sentiment= ml5.CallRef("sentiment","movieReviews",ModelLoaded);
-
-	}
 	void Predict()
 	{
 		var v=sentiment.Call<Score>("predict", predictText);
@@ -51,7 +38,6 @@
 	void OnModelLoaded(params JObjPtr[] args)
 	{
 		Console.WriteLine("Model Loaded: "+args.Length);
->>>>>>> Stashed changes
 	}
 	record Score(double score);
 

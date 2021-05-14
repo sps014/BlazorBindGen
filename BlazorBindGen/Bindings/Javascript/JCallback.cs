@@ -3,11 +3,6 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-<<<<<<< Updated upstream
-=======
-using System.Linq;
-using System.Threading.Tasks;
->>>>>>> Stashed changes
 using Microsoft.JSInterop;
 
 namespace BlazorBindGen
@@ -27,9 +22,6 @@ namespace BlazorBindGen
         [JSInvokable("ExecuteInCSharp")]
         public void CallMe(int hash,int argLength)
         {
-<<<<<<< Updated upstream
-            Executor.Invoke(obj);
-=======
             var ptr=GetArgAsPtr(hash);
             var arr=new JObjPtr[argLength];
 
@@ -45,7 +37,6 @@ namespace BlazorBindGen
             JObjPtr ptrs =new();
             BindGen.Module.InvokeVoid("cleanupargs",hash,ptrs.Hash);
             return ptrs;
->>>>>>> Stashed changes
         }
     }
     
