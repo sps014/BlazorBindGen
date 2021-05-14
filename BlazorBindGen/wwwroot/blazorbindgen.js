@@ -34,32 +34,6 @@ export function funcref(fname, params, ph, h) {
 export function funcvoid(fname, params, h) {
     props[h][fname](...paramexpand(params));
 }
-function paramexpand(param) {
-    var res = [];
-    param.forEach((pm) => {
-        let r;
-        switch (pm.type) {
-            case 1:
-                r = props[pm.value];
-                break;
-            case 2:
-                r = callbackHandler.bind(pm.value);
-                break;
-            default:
-                r = pm.value;
-                break;
-        }
-        res.push(r);
-    });
-    return res;
-}
-function callbackHandler() {
-    let arg = [];
-    for (var i = 0; i < arguments.length; i++) {
-        arg.push(arguments[i]);
-    }
-    this.invokeMethod("ExecuteInCSharp", arg);
-}
 export async function funcrefawait(fname, params, eh, ph,h) {
     let er = "";
     try { props[ph] = await props[h][fname](...paramexpand(params)); }
@@ -96,7 +70,36 @@ export function getarrayref(array, eh) {
 export function fastlength(h) {
     return props[h].byteLength;
 }
+export function setcallback(pname, dotnet, h) {
+    props[h][pname] = callbackHandler.bind(dotnet);
+}
+
 export let asjson=(h)=>JSON.stringify(props[h]);
 export let to = (h) => props[h];
 
-window.arr = new Uint8Array(5);
+function paramexpand(param) {
+    var res = [];
+    param.forEach((pm) => {
+        let r;
+        switch (pm.type) {
+            case 1:
+                r = props[pm.value];
+                break;
+            case 2:
+                r = callbackHandler.bind(pm.value);
+                break;
+            default:
+                r = pm.value;
+                break;
+        }
+        res.push(r);
+    });
+    return res;
+}
+function callbackHandler() {
+    let arg = [];
+    for (var i = 0; i < arguments.length; i++) {
+        arg.push(arguments[i]);
+    }
+    this.invokeMethod("ExecuteInCSharp",arg);
+}

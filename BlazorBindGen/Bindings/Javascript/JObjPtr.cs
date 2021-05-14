@@ -25,11 +25,11 @@ namespace BlazorBindGen
         }
 
         
-        public T Val<T>(string propname)
+        public T PropVal<T>(string propname)
         {
             return BindGen.Module.Invoke<T>("propval", propname, Hash);
         }
-        public async ValueTask<T> ValAsync<T>(string propname)
+        public async ValueTask<T> PropValAsync<T>(string propname)
         {
             return await BindGen.Module.InvokeAsync<T>("propval", propname, Hash);
         }
@@ -45,7 +45,7 @@ namespace BlazorBindGen
             await BindGen.Module.InvokeVoidAsync("propref", propname, obj.Hash, Hash);
             return obj;
         }
-        public void SetVal<T>(string propname, T value)
+        public void SetPropVal<T>(string propname, T value)
         {
             BindGen.Module.InvokeVoid("propset", propname, value,Hash);
         }
@@ -64,7 +64,7 @@ namespace BlazorBindGen
             return BindGen.Module.InvokeUnmarshalled<string,int,bool>("isfunc", propname, Hash);
         }
 
-        public T Func<T>(string funcname, params object[] param)
+        public T Call<T>(string funcname, params object[] param)
         {
             var args = BindGen.GetParamList(param);
             var res= BindGen.Module.Invoke<T>("func", funcname, args, Hash);
@@ -72,7 +72,7 @@ namespace BlazorBindGen
             return res;
         }
 
-        public async ValueTask<T> FuncAsync<T>(string funcname, params object[] param)
+        public async ValueTask<T> CallAsync<T>(string funcname, params object[] param)
         {
             var args = BindGen.GetParamList(param);
             var res= await BindGen.Module.InvokeAsync<T>("func", funcname, args, Hash);
@@ -80,7 +80,7 @@ namespace BlazorBindGen
             return res;
         }
 
-        public JObjPtr FuncRef(string funcname, params object[] param)
+        public JObjPtr CallRef(string funcname, params object[] param)
         {
             var args = BindGen.GetParamList(param);
             JObjPtr j = new();
@@ -89,7 +89,7 @@ namespace BlazorBindGen
             return j;
         }
 
-        public async ValueTask<JObjPtr> FuncRefAsync(string funcname, params object[] param)
+        public async ValueTask<JObjPtr> CallRefAsync(string funcname, params object[] param)
         {
             JObjPtr j = new();
             var args = BindGen.GetParamList(param);
@@ -97,21 +97,21 @@ namespace BlazorBindGen
             BindGen.ParamPool.Return(args);
             return j;
         }
-        public void FuncVoid(string funcname, params object[] param)
+        public void CallVoid(string funcname, params object[] param)
         {
             var args = BindGen.GetParamList(param);
             BindGen.Module.InvokeVoid("funcvoid", funcname, args, Hash);
             BindGen.ParamPool.Return(args);
         }
 
-        public async void FuncVoidAsync(string funcname, params object[] param)
+        public async void CallVoidAsync(string funcname, params object[] param)
         {
             var args = BindGen.GetParamList(param);
             await BindGen.Module.InvokeVoidAsync("funcvoid", funcname, args, Hash);
             BindGen.ParamPool.Return(args);
         }
 
-        public async ValueTask<JObjPtr> FuncRefAwaitAsync(string funcname, params object[] param)
+        public async ValueTask<JObjPtr> CallRefAwaitedAsync(string funcname, params object[] param)
         {
 
             JObjPtr obj = new();
@@ -128,7 +128,7 @@ namespace BlazorBindGen
 
         }
 
-        public async ValueTask FuncVoidAwaitAsync(string funcname, params object[] param)
+        public async ValueTask CallVoidAwaitedAsync(string funcname, params object[] param)
         {
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
             var args = BindGen.GetParamList(param);
@@ -138,7 +138,7 @@ namespace BlazorBindGen
             await ErrorHandler.HoldVoid(errH);
         }
 
-        public async ValueTask<T> FuncAwaitAsync<T>(string funcname, params object[] param)
+        public async ValueTask<T> CallAwaitedAsync<T>(string funcname, params object[] param)
         {
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
             var args = BindGen.GetParamList(param);
@@ -168,6 +168,9 @@ namespace BlazorBindGen
             return ptr;
         }
 
-      
+        public void SetPropCallBack(string propname, JCallback callback)
+        {
+            BindGen.Module.InvokeVoid("setcallback",propname, callback.DotNet, Hash);
+        }
     }
 }
