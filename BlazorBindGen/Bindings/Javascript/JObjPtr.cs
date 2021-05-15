@@ -1,19 +1,22 @@
 ﻿using Microsoft.JSInterop;
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace BlazorBindGen
 {
-    public class JObjPtr : IJavaScriptObject
+    public class JObjPtr
     {
         internal int Hash { get; set; }
         internal static int HashTrack = 0;
-        
+
+        internal static ArrayPool<ParamInfo> ParamPool = ArrayPool<ParamInfo>.Shared;
 
         internal JObjPtr()
         {
@@ -66,49 +69,49 @@ namespace BlazorBindGen
 
         public T Call<T>(string funcname, params object[] param)
         {
-            var args = BindGen.GetParamList(param);
+            var args = GetParamList(param);
             var res= BindGen.Module.Invoke<T>("func", funcname, args, Hash);
-            BindGen.ParamPool.Return(args);
+            ParamPool.Return(args);
             return res;
         }
 
         public async ValueTask<T> CallAsync<T>(string funcname, params object[] param)
         {
-            var args = BindGen.GetParamList(param);
+            var args = GetParamList(param);
             var res= await BindGen.Module.InvokeAsync<T>("func", funcname, args, Hash);
-            BindGen.ParamPool.Return(args);
+            ParamPool.Return(args);
             return res;
         }
 
         public JObjPtr CallRef(string funcname, params object[] param)
         {
-            var args = BindGen.GetParamList(param);
+            var args = GetParamList(param);
             JObjPtr j = new();
             BindGen.Module.InvokeVoid("funcref", funcname,args, j.Hash,Hash);
-            BindGen.ParamPool.Return(args);
+            ParamPool.Return(args);
             return j;
         }
 
         public async ValueTask<JObjPtr> CallRefAsync(string funcname, params object[] param)
         {
             JObjPtr j = new();
-            var args = BindGen.GetParamList(param);
+            var args = GetParamList(param);
             await BindGen.Module.InvokeVoidAsync("funcref", funcname, args, j.Hash,Hash);
-            BindGen.ParamPool.Return(args);
+            ParamPool.Return(args);
             return j;
         }
         public void CallVoid(string funcname, params object[] param)
         {
-            var args = BindGen.GetParamList(param);
+            var args = GetParamList(param);
             BindGen.Module.InvokeVoid("funcvoid", funcname, args, Hash);
-            BindGen.ParamPool.Return(args);
+            ParamPool.Return(args);
         }
 
         public async void CallVoidAsync(string funcname, params object[] param)
         {
-            var args = BindGen.GetParamList(param);
+            var args = GetParamList(param);
             await BindGen.Module.InvokeVoidAsync("funcvoid", funcname, args, Hash);
-            BindGen.ParamPool.Return(args);
+            ParamPool.Return(args);
         }
 
         public async ValueTask<JObjPtr> CallRefAwaitedAsync(string funcname, params object[] param)
@@ -116,10 +119,10 @@ namespace BlazorBindGen
 
             JObjPtr obj = new();
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
-            var args = BindGen.GetParamList(param);
+            var args = GetParamList(param);
 
             BindGen.Module.InvokeVoid("funcrefawait", funcname, args, errH, obj.Hash,Hash);
-            BindGen.ParamPool.Return(args);
+            ParamPool.Return(args);
 
             await ErrorHandler.HoldRef(errH);
 
@@ -131,9 +134,9 @@ namespace BlazorBindGen
         public async ValueTask CallVoidAwaitedAsync(string funcname, params object[] param)
         {
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
-            var args = BindGen.GetParamList(param);
+            var args = GetParamList(param);
             BindGen.Module.InvokeVoid("funcvoidawait", funcname, args, errH,Hash);
-            BindGen.ParamPool.Return(args);
+            ParamPool.Return(args);
 
             await ErrorHandler.HoldVoid(errH);
         }
@@ -141,10 +144,10 @@ namespace BlazorBindGen
         public async ValueTask<T> CallAwaitedAsync<T>(string funcname, params object[] param)
         {
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
-            var args = BindGen.GetParamList(param);
+            var args = GetParamList(param);
 
             BindGen.Module.InvokeVoid("funcawait", funcname, args, errH, Hash);
-            BindGen.ParamPool.Return(args);
+            ParamPool.Return(args);
 
             return await ErrorHandler.Hold<T>(errH);
 
@@ -162,9 +165,9 @@ namespace BlazorBindGen
         public JObjPtr Construct(string classname, params object[] param)
         {
             JObjPtr ptr = new();
-            var args = BindGen.GetParamList(param);
+            var args = GetParamList(param);
             BindGen.Module.InvokeVoid("construct", classname, args,ptr.Hash,Hash);
-            BindGen.ParamPool.Return(args);
+            ParamPool.Return(args);
             return ptr;
         }
 
@@ -173,6 +176,31 @@ namespace BlazorBindGen
             var cbk = new JCallback(action);
             BindGen.Module.InvokeVoid("setcallback",propname, cbk.DotNet, Hash);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ParamInfo[] GetParamList(params object[] array)
+        {
+            var list = ParamPool.Rent(array.Length);
+            int i = 0;
+            foreach (var p in array)
+            {
+                if (p is JObjPtr)
+                {
+                    list[i] = new() { Value = (p as JObjPtr).Hash, Type = ParamTypes.JOBJ };
+                }
+                else if (p is Action<JObjPtr[]>)
+                {
+                    list[i] = new() { Type = ParamTypes.CALLBACK, Value = (new JCallback(p as Action<JObjPtr[]>)).DotNet };
+                }
+                else
+                {
+                    list[i] = new() { Value = p };
+                }
+                i++;
+            }
+            return list;
+        }
         public JObjPtr this[string propertyname]=>PropRef(propertyname);
+
+
     }
 }

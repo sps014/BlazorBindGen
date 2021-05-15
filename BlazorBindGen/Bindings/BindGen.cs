@@ -1,10 +1,5 @@
 ﻿using Microsoft.JSInterop;
 using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,8 +12,6 @@ namespace BlazorBindGen
         public static JWindow Window { get; private set; }
 
         internal static DotNetObjectReference<JCallBackHandler> DotNet;
-
-        internal static ArrayPool<ParamInfo> ParamPool = ArrayPool<ParamInfo>.Shared;
         internal static IJSInProcessRuntime Runtime { get; private set; }
         public static async ValueTask Init(IJSRuntime jsRuntime)
         {
@@ -48,7 +41,7 @@ namespace BlazorBindGen
         public static JObjPtr SetArrayToRef(byte[] array)
         {
             var obj = new JObjPtr();
-            _ = BindGen.Module.InvokeUnmarshalled<byte[], int, object>("setarrayref", array, obj.Hash);
+            _ = Module.InvokeUnmarshalled<byte[], int, object>("setarrayref", array, obj.Hash);
             return obj;
         }
         public static byte[] GetArrayFromRef(JObjPtr jsUint8ArrayRef)
@@ -73,29 +66,7 @@ namespace BlazorBindGen
             await ErrorHandler.HoldVoid(errH);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static ParamInfo[] GetParamList(params object[] array)
-        {
-            var list=ParamPool.Rent(array.Length);
-            int i = 0;
-            foreach (var p in array)
-            {
-                if (p is JObjPtr)
-                {
-                    list[i]=new() { Value = (p as JObjPtr).Hash, Type = ParamTypes.JOBJ };
-                }
-                else if (p is Action<JObjPtr[]>)
-                {
-                    list[i] = new() { Type = ParamTypes.CALLBACK, Value = (new JCallback(p as Action<JObjPtr[]>)).DotNet };
-                }
-                else
-                {
-                    list[i]=new() { Value = p };
-                }
-                i++;
-            }
-            return list; 
-        }
+       
         
     }
 }

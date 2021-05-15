@@ -2,6 +2,8 @@
 
 @using BlazorBindGen
 @using static BlazorBindGen.BindGen
+@using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>;
+
 @inject IJSRuntime runtime
 
 <input type="text" class="form-controls" @bind="predictText" placeholder="write review here " />
@@ -25,8 +27,7 @@
 		Console.Clear();
 		var ml5 = win.PropRef("ml5");
 		//const sentiment = ml5.sentiment('movieReviews', modelReady);
-		Action<JObjPtr[]> ModelLoaded=OnModelLoaded;
-		sentiment=ml5.CallRef("sentiment","movieReviews",ModelLoaded);
+		sentiment=ml5.CallRef("sentiment","movieReviews",(JSCallBack)OnModelLoaded);
 	}
 	
 	void Predict()

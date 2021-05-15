@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Buffers;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.JSInterop;
-
 namespace BlazorBindGen
 {
     public class JCallback
