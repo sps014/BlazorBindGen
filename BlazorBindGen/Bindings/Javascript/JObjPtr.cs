@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace BlazorBindGen
 {
-    public class JObjPtr
+    public class JObjPtr:IEquatable<JObjPtr>
     {
         internal int Hash { get; set; }
         internal static int HashTrack = 0;
@@ -200,7 +200,14 @@ namespace BlazorBindGen
             return list;
         }
         public JObjPtr this[string propertyname]=>PropRef(propertyname);
+        public override string ToString()
+        {
+            return AsJsonText();
+        }
 
-
+        public bool Equals(JObjPtr other)
+        {
+            return BindGen.Module.Invoke<bool>("isEqualRef", other.Hash, Hash);
+        }
     }
 }

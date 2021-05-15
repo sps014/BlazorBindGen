@@ -108,5 +108,8 @@ export function cleanupargs(cbh, h) {
     props[h] = callbackResult[cbh];
     delete callbackResult[cbh];
 }
+export function isEqualRef(oh, h) {
+    return props[oh] === props[h];
+}
 let callbackResult = new Object();
 let cbCount = 0;
