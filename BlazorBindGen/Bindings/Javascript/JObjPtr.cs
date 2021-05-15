@@ -4,12 +4,13 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using static BlazorBindGen.BindGen;
 
 namespace BlazorBindGen
 {
     public class JObjPtr:IEquatable<JObjPtr>
     {
-        internal int Hash { get; set; }
+        internal int Hash { get; private set; }
         internal static int HashTrack = 0;
 
         internal static ArrayPool<ParamInfo> ParamPool = ArrayPool<ParamInfo>.Shared;
@@ -20,41 +21,41 @@ namespace BlazorBindGen
         }
         ~JObjPtr()
         {
-            _ = BindGen.Module.InvokeUnmarshalled<int, object>("deleteprop", Hash);
+            _ = Module.InvokeUnmarshalled<int, object>("deleteprop", Hash);
         }
 
 
         public T PropVal<T>(string propname) =>
-            BindGen.Module.Invoke<T>("propval", propname, Hash);
+            Module.Invoke<T>("propval", propname, Hash);
         public async ValueTask<T> PropValAsync<T>(string propname) =>
-            await BindGen.Module.InvokeAsync<T>("propval", propname, Hash);
+            await Module.InvokeAsync<T>("propval", propname, Hash);
         public JObjPtr PropRef(string propname)
         {
             JObjPtr obj = new();
-            _ = BindGen.Module.InvokeUnmarshalled<string, int, int, object>("propref", propname, obj.Hash, Hash);
+            _ = Module.InvokeUnmarshalled<string, int, int, object>("propref", propname, obj.Hash, Hash);
             return obj;
         }
         public async ValueTask<JObjPtr> PropRefAsync(string propname)
         {
             JObjPtr obj = new();
-            await BindGen.Module.InvokeVoidAsync("propref", propname, obj.Hash, Hash);
+            await Module.InvokeVoidAsync("propref", propname, obj.Hash, Hash);
             return obj;
         }
         public void SetPropVal<T>(string propname, T value) => 
-            BindGen.Module.InvokeVoid("propset", propname, value, Hash);
+            Module.InvokeVoid("propset", propname, value, Hash);
 
         public void SetPropRef(string propname, JObjPtr obj) => 
-            _ = BindGen.Module.InvokeUnmarshalled<string, int, int, object>("propsetref", propname, obj.Hash, Hash);
+            _ = Module.InvokeUnmarshalled<string, int, int, object>("propsetref", propname, obj.Hash, Hash);
 
         public bool IsProp(string propname) => 
-            BindGen.Module.InvokeUnmarshalled<string, int, bool>("isprop", propname, Hash);
+            Module.InvokeUnmarshalled<string, int, bool>("isprop", propname, Hash);
         public bool IsFunc(string propname) => 
-            BindGen.Module.InvokeUnmarshalled<string, int, bool>("isfunc", propname, Hash);
+            Module.InvokeUnmarshalled<string, int, bool>("isfunc", propname, Hash);
 
         public T Call<T>(string funcname, params object[] param)
         {
             var args = GetParamList(param);
-            var res= BindGen.Module.Invoke<T>("func", funcname, args, Hash);
+            var res= Module.Invoke<T>("func", funcname, args, Hash);
             ParamPool.Return(args);
             return res;
         }
@@ -62,7 +63,7 @@ namespace BlazorBindGen
         public async ValueTask<T> CallAsync<T>(string funcname, params object[] param)
         {
             var args = GetParamList(param);
-            var res= await BindGen.Module.InvokeAsync<T>("func", funcname, args, Hash);
+            var res= await Module.InvokeAsync<T>("func", funcname, args, Hash);
             ParamPool.Return(args);
             return res;
         }
@@ -71,7 +72,7 @@ namespace BlazorBindGen
         {
             var args = GetParamList(param);
             JObjPtr j = new();
-            BindGen.Module.InvokeVoid("funcref", funcname,args, j.Hash,Hash);
+            Module.InvokeVoid("funcref", funcname,args, j.Hash,Hash);
             ParamPool.Return(args);
             return j;
         }
@@ -80,21 +81,21 @@ namespace BlazorBindGen
         {
             JObjPtr j = new();
             var args = GetParamList(param);
-            await BindGen.Module.InvokeVoidAsync("funcref", funcname, args, j.Hash,Hash);
+            await Module.InvokeVoidAsync("funcref", funcname, args, j.Hash,Hash);
             ParamPool.Return(args);
             return j;
         }
         public void CallVoid(string funcname, params object[] param)
         {
             var args = GetParamList(param);
-            BindGen.Module.InvokeVoid("funcvoid", funcname, args, Hash);
+            Module.InvokeVoid("funcvoid", funcname, args, Hash);
             ParamPool.Return(args);
         }
 
         public async void CallVoidAsync(string funcname, params object[] param)
         {
             var args = GetParamList(param);
-            await BindGen.Module.InvokeVoidAsync("funcvoid", funcname, args, Hash);
+            await Module.InvokeVoidAsync("funcvoid", funcname, args, Hash);
             ParamPool.Return(args);
         }
 
@@ -104,7 +105,7 @@ namespace BlazorBindGen
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
             var args = GetParamList(param);
 
-            BindGen.Module.InvokeVoid("funcrefawait", funcname, args, errH, obj.Hash,Hash);
+            Module.InvokeVoid("funcrefawait", funcname, args, errH, obj.Hash,Hash);
             ParamPool.Return(args);
 
             await LockHandler.HoldVoid(errH);
@@ -116,7 +117,7 @@ namespace BlazorBindGen
         {
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
             var args = GetParamList(param);
-            BindGen.Module.InvokeVoid("funcvoidawait", funcname, args, errH,Hash);
+            Module.InvokeVoid("funcvoidawait", funcname, args, errH,Hash);
             ParamPool.Return(args);
 
             await LockHandler.HoldVoid(errH);
@@ -127,20 +128,20 @@ namespace BlazorBindGen
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
             var args = GetParamList(param);
 
-            BindGen.Module.InvokeVoid("funcawait", funcname, args, errH, Hash);
+            Module.InvokeVoid("funcawait", funcname, args, errH, Hash);
             ParamPool.Return(args);
 
             return await LockHandler.Hold<T>(errH);
 
         }
-        public string AsJsonText() => BindGen.Module.Invoke<string>("asjson", Hash);
-        public T To<T>() => BindGen.Module.Invoke<T>("to", Hash);
+        public string AsJsonText() => Module.Invoke<string>("asjson", Hash);
+        public T To<T>() => Module.Invoke<T>("to", Hash);
 
         public JObjPtr Construct(string classname, params object[] param)
         {
             JObjPtr ptr = new();
             var args = GetParamList(param);
-            BindGen.Module.InvokeVoid("construct", classname, args,ptr.Hash,Hash);
+            Module.InvokeVoid("construct", classname, args,ptr.Hash,Hash);
             ParamPool.Return(args);
             return ptr;
         }
@@ -148,7 +149,7 @@ namespace BlazorBindGen
         public void SetPropCallBack(string propname, Action<JObjPtr[]> action)
         {
             var cbk = new JCallback(action);
-            BindGen.Module.InvokeVoid("setcallback",propname, cbk.DotNet, Hash);
+            Module.InvokeVoid("setcallback",propname, cbk.DotNet, Hash);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ParamInfo[] GetParamList(params object[] array)
@@ -176,6 +177,6 @@ namespace BlazorBindGen
         public JObjPtr this[string propertyname]=>PropRef(propertyname);
         public override string ToString() => AsJsonText();
 
-        public bool Equals(JObjPtr other) => BindGen.Module.Invoke<bool>("isEqualRef", other.Hash, Hash);
+        public bool Equals(JObjPtr other) => Module.Invoke<bool>("isEqualRef", other.Hash, Hash);
     }
 }

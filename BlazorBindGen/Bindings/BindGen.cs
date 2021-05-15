@@ -53,10 +53,8 @@ namespace BlazorBindGen
             _ = Module.InvokeUnmarshalled<byte[], int, object>("getarrayref", arr, jsUint8ArrayRef.Hash);
             return arr;
         }
-        internal static long FastLength(JObjPtr jsUint8ArrayRef)
-        {
-            return Module.InvokeUnmarshalled<int, int>("fastlength", jsUint8ArrayRef.Hash);
-        }
+        internal static long FastLength(JObjPtr jsUint8ArrayRef) => 
+            Module.InvokeUnmarshalled<int, int>("fastlength", jsUint8ArrayRef.Hash);
         public static async ValueTask Import(string moduleURL)
         {
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);

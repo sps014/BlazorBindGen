@@ -6,24 +6,25 @@ export function initDotnet(net) {
 export function createwin(h) {
     props[h] = window;
 }
+let conv_str=(s) => BINDING.conv_string(s);
 export let propval = (pname, h) => props[h][pname];
 export let propvalwin = (pname) => window[pname];
 export function propref(pname, proph, h) {
-    props[proph] = props[h][BINDING.conv_string(pname)];
+    props[proph] = props[h][conv_str(pname)];
 }
 export function deleteprop(phash) {
     delete props[phash];
 }
-export let isprop = (pname, h) => typeof (props[h][BINDING.conv_string(pname)]) != "function"
-    && typeof (props[h][BINDING.conv_string(pname)]) != undefined;
+export let isprop = (pname, h) => typeof (props[h][conv_str(pname)]) != "function"
+    && typeof (props[h][conv_str(pname)]) != undefined;
 
-export let isfunc = (pname, h) => typeof (props[h][BINDING.conv_string(pname)]) == "function";
+export let isfunc = (pname, h) => typeof (props[h][conv_str(pname)]) == "function";
 
 export function propset(pname, val, h) {
     props[h][pname] = val;
 }
 export function propsetref(pname, ph, h) {
-    props[h][BINDING.conv_string(pname)] = props[ph];
+    props[h][conv_str(pname)] = props[ph];
 }
 export function func(fname,params, h) {
     return props[h][fname](...paramexpand(params));
@@ -54,7 +55,7 @@ export async function funcawait(fname, params, eh, h){
 }
 export async function importmod(module, eh) {
     let er = "";
-    try { await import(BINDING.conv_string(module)); }
+    try { await import(conv_str(module)); }
     catch (e) { er = e.toString(); }
     dotnet.invokeMethod("errorMessage", eh, er, null);
 }
