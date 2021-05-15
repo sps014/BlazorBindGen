@@ -63,7 +63,7 @@ namespace BlazorBindGen
 
             Module.InvokeUnmarshalled<string, int, object>("importmod", moduleURL, (int)errH);
 
-            await ErrorHandler.HoldVoid(errH);
+            await LockHandler.HoldVoid(errH);
         }
 
        
