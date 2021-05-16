@@ -152,10 +152,10 @@ namespace BlazorBindGen
             Module.InvokeVoid("setcallback",propname, cbk.DotNet, Hash);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static ParamInfo[] GetParamList(params object[] array)
+        private static ParamInfo[] GetParamList(params object[] array)
         {
             var list = ParamPool.Rent(array.Length);
-            int i = 0;
+            var i = 0;
             foreach (var p in array)
             {
                 if (p is JObjPtr)
