@@ -11,13 +11,13 @@ namespace BlazorBindGen
     public class JObjPtr:IEquatable<JObjPtr>
     {
         internal int Hash { get; private set; }
-        internal static int HashTrack = 0;
+        private static int _hashTrack = 0;
 
-        internal static ArrayPool<ParamInfo> ParamPool = ArrayPool<ParamInfo>.Shared;
+        private static readonly ArrayPool<ParamInfo> ParamPool = ArrayPool<ParamInfo>.Shared;
 
         internal JObjPtr()
         {
-            Hash = Interlocked.Increment(ref HashTrack);
+            Hash = Interlocked.Increment(ref _hashTrack);
         }
         ~JObjPtr()
         {

@@ -11,7 +11,7 @@ namespace BlazorBindGen
 {
     public class JCallBackHandler
     {
-        internal static ConcurrentDictionary<long,(object Value,string Error)> ErrorMessages = new();
+        internal static readonly ConcurrentDictionary<long,(object Value,string Error)> ErrorMessages = new();
         internal static long ErrorTrack = 0;
 
         [EditorBrowsable(EditorBrowsableState.Never)]

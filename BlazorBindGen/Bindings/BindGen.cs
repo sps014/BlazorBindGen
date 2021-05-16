@@ -7,34 +7,34 @@ namespace BlazorBindGen
 {
     public static class BindGen
     {
-        private static Lazy<Task<IJSUnmarshalledObjectReference>> moduleTask;
+        private static Lazy<Task<IJSUnmarshalledObjectReference>> _moduleTask;
         public static IJSUnmarshalledObjectReference Module { get; private set; }
         public static JWindow Window { get; private set; }
 
-        internal static DotNetObjectReference<JCallBackHandler> DotNet;
-        internal static IJSInProcessRuntime Runtime { get; private set; }
+        private static DotNetObjectReference<JCallBackHandler> _dotNet;
+        private static IJSInProcessRuntime Runtime { get; set; }
         public static async ValueTask Init(IJSRuntime jsRuntime)
         {
             Runtime = jsRuntime as IJSInProcessRuntime;
-            moduleTask = new(() => Runtime.InvokeAsync<IJSUnmarshalledObjectReference>(
+            _moduleTask = new(() => Runtime.InvokeAsync<IJSUnmarshalledObjectReference>(
                "import", "./_content/BlazorBindGen/blazorbindgen.js").AsTask());
-            Module = await moduleTask.Value;
+            Module = await _moduleTask.Value;
 
-            DotNet = DotNetObjectReference.Create(new JCallBackHandler());
+            _dotNet = DotNetObjectReference.Create(new JCallBackHandler());
             Window = JWindow.CreateJWindowObject();
 
             InitDotNet();
         }
         private static void InitDotNet()
         {
-            Module.InvokeVoid("initDotnet", DotNet);
+            Module.InvokeVoid("initDotnet", _dotNet);
         }
 
         public static async ValueTask DisposeAsync()
         {
-            if (moduleTask.IsValueCreated)
+            if (_moduleTask.IsValueCreated)
             {
-                var module = await moduleTask.Value;
+                var module = await _moduleTask.Value;
                 await module.DisposeAsync();
             }
         }
@@ -53,7 +53,8 @@ namespace BlazorBindGen
             _ = Module.InvokeUnmarshalled<byte[], int, object>("getarrayref", arr, jsUint8ArrayRef.Hash);
             return arr;
         }
-        internal static long FastLength(JObjPtr jsUint8ArrayRef) => 
+
+        private static long FastLength(JObjPtr jsUint8ArrayRef) => 
             Module.InvokeUnmarshalled<int, int>("fastlength", jsUint8ArrayRef.Hash);
         public static async ValueTask Import(string moduleURL)
         {

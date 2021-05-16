@@ -1,5 +1,9 @@
-﻿let props = new Object();
+﻿let props = {};
 let dotnet;
+
+let callbackResult = {};
+let cbCount = 0;
+
 export function initDotnet(net) {
     dotnet = net;
 }
@@ -16,7 +20,7 @@ export function deleteprop(phash) {
     delete props[phash];
 }
 export let isprop = (pname, h) => typeof (props[h][conv_str(pname)]) != "function"
-    && typeof (props[h][conv_str(pname)]) != undefined;
+    && typeof (props[h][conv_str(pname)]) !== undefined;
 
 export let isfunc = (pname, h) => typeof (props[h][conv_str(pname)]) == "function";
 
@@ -39,25 +43,25 @@ export async function funcrefawait(fname, params, eh, ph,h) {
     let er = "";
     try { props[ph] = await props[h][fname](...paramexpand(params)); }
     catch (e) { er = e.toString(); }
-    dotnet.invokeMethod("errorMessage", eh, er, null);
+    dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }
 export async function funcvoidawait(fname, params, eh,h) {
     let er = "";
     try { await props[h][fname](...paramexpand(params)); }
     catch (e) { er = e.toString(); }
-    dotnet.invokeMethod("errorMessage", eh, er, null);
+    dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }
 export async function funcawait(fname, params, eh, h){
     let er = "",v=null;
     try { v = await props[h][fname](...paramexpand(params)); }
     catch (e) { er = e.toString(); }
-    dotnet.invokeMethod("errorMessage", eh, er, v);
+    dotnet.invokeMethodAsync("errorMessage", eh, er, v);
 }
 export async function importmod(module, eh) {
     let er = "";
     try { await import(conv_str(module)); }
     catch (e) { er = e.toString(); }
-    dotnet.invokeMethod("errorMessage", eh, er, null);
+    dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }
 export function construct(classname, param, eh, h) {
     props[eh] = new props[h][classname](...paramexpand(param));
@@ -79,7 +83,7 @@ export let asjson=(h)=>JSON.stringify(props[h]);
 export let to = (h) => props[h];
 
 function paramexpand(param) {
-    var res = [];
+    let res = [];
     param.forEach((pm) => {
         let r;
         switch (pm.type) {
@@ -99,7 +103,7 @@ function paramexpand(param) {
 }
 function callbackHandler() {
     let arg = [];
-    for (var i = 0; i < arguments.length; i++) 
+    for (let i = 0; i < arguments.length; i++) 
         arg.push(arguments[i]);
     let h = cbCount++;
     callbackResult[h] = arg;
@@ -112,5 +116,3 @@ export function cleanupargs(cbh, h) {
 export function isEqualRef(oh, h) {
     return props[oh] === props[h];
 }
-let callbackResult = new Object();
-let cbCount = 0;

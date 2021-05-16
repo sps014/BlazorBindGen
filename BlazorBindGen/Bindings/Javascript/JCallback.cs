@@ -6,7 +6,7 @@ namespace BlazorBindGen
 {
     public class JCallback
     {
-        internal DotNetObjectReference<JCallback> DotNet;
+        internal readonly DotNetObjectReference<JCallback> DotNet;
 
         public Action<JObjPtr[]> Executor { get; }
         public JCallback([NotNull] Action<JObjPtr[]> action)
