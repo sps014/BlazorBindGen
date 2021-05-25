@@ -55,7 +55,7 @@ namespace BlazorBindGen
         public T Call<T>(string funcname, params object[] param)
         {
             var args = GetParamList(param);
-            var res= Module.Invoke<T>("func", funcname, args, Hash);
+            var res= Module.Invoke<T>("func", funcname, args.AsSpan()[..param.Length].ToArray(), Hash);
             ParamPool.Return(args);
             return res;
         }
@@ -63,7 +63,7 @@ namespace BlazorBindGen
         public async ValueTask<T> CallAsync<T>(string funcname, params object[] param)
         {
             var args = GetParamList(param);
-            var res= await Module.InvokeAsync<T>("func", funcname, args, Hash);
+            var res= await Module.InvokeAsync<T>("func", funcname, args.AsSpan()[..param.Length].ToArray(), Hash);
             ParamPool.Return(args);
             return res;
         }
@@ -72,7 +72,7 @@ namespace BlazorBindGen
         {
             var args = GetParamList(param);
             JObjPtr j = new();
-            Module.InvokeVoid("funcref", funcname,args, j.Hash,Hash);
+            Module.InvokeVoid("funcref", funcname,args.AsSpan()[..param.Length].ToArray(), j.Hash,Hash);
             ParamPool.Return(args);
             return j;
         }
@@ -81,21 +81,21 @@ namespace BlazorBindGen
         {
             JObjPtr j = new();
             var args = GetParamList(param);
-            await Module.InvokeVoidAsync("funcref", funcname, args, j.Hash,Hash);
+            await Module.InvokeVoidAsync("funcref", funcname, args.AsSpan()[..param.Length].ToArray(), j.Hash,Hash);
             ParamPool.Return(args);
             return j;
         }
         public void CallVoid(string funcname, params object[] param)
         {
             var args = GetParamList(param);
-            Module.InvokeVoid("funcvoid", funcname, args, Hash);
+            Module.InvokeVoid("funcvoid", funcname, args.AsSpan()[..param.Length].ToArray(), Hash);
             ParamPool.Return(args);
         }
 
         public async void CallVoidAsync(string funcname, params object[] param)
         {
             var args = GetParamList(param);
-            await Module.InvokeVoidAsync("funcvoid", funcname, args, Hash);
+            await Module.InvokeVoidAsync("funcvoid", funcname, args.AsSpan()[..param.Length].ToArray(), Hash);
             ParamPool.Return(args);
         }
 
@@ -105,7 +105,7 @@ namespace BlazorBindGen
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
             var args = GetParamList(param);
 
-            Module.InvokeVoid("funcrefawait", funcname, args, errH, obj.Hash,Hash);
+            Module.InvokeVoid("funcrefawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH, obj.Hash,Hash);
             ParamPool.Return(args);
 
             await LockHandler.HoldVoid(errH);
@@ -117,7 +117,7 @@ namespace BlazorBindGen
         {
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
             var args = GetParamList(param);
-            Module.InvokeVoid("funcvoidawait", funcname, args, errH,Hash);
+            Module.InvokeVoid("funcvoidawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH,Hash);
             ParamPool.Return(args);
 
             await LockHandler.HoldVoid(errH);
@@ -128,7 +128,7 @@ namespace BlazorBindGen
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
             var args = GetParamList(param);
 
-            Module.InvokeVoid("funcawait", funcname, args, errH, Hash);
+            Module.InvokeVoid("funcawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
             ParamPool.Return(args);
 
             return await LockHandler.Hold<T>(errH);
@@ -141,7 +141,7 @@ namespace BlazorBindGen
         {
             JObjPtr ptr = new();
             var args = GetParamList(param);
-            Module.InvokeVoid("construct", classname, args,ptr.Hash,Hash);
+            Module.InvokeVoid("construct", classname, args.AsSpan()[..param.Length].ToArray(),ptr.Hash,Hash);
             ParamPool.Return(args);
             return ptr;
         }
