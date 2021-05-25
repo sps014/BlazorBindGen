@@ -5,7 +5,7 @@
 @using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>;
 
 @inject IJSRuntime runtime
-
+<div @ref="canvasRef"></div>
 <input type="text" class="form-controls" @bind="predictText" placeholder="write review here " />
 <button class="btn btn-primary" id="mbtn" @onclick="Predict">Sentiment</button><br />
 
@@ -14,13 +14,24 @@
 	JWindow win;
 	public JObjPtr sentiment;
 	string predictText;
+	ElementReference canvasRef;
 	protected override async Task OnInitializedAsync()
 	{
 		await base.OnInitializedAsync();
 		await Init(runtime);
 		win = Window;
-		await Heavy();
+		//await Heavy();
+		await P5Task();
 	}
+	async Task P5Task()
+	{
+		await Import("https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/p5.js");
+		var p5 = win.Construct("p5",null,canvasRef);
+		p5.CallVoid("createCanvas",800,600);
+		p5.CallVoid("background",0,120,0,255);
+
+	}
+	
 	async Task Heavy()
 	{
 		await Import("https://unpkg.com/ml5@latest/dist/ml5.min.js");

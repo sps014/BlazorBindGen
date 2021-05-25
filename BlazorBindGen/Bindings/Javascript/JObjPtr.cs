@@ -1,6 +1,7 @@
 ﻿using Microsoft.JSInterop;
 using System;
 using System.Buffers;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,7 +57,7 @@ namespace BlazorBindGen
         {
             var args = GetParamList(param);
             var res= Module.Invoke<T>("func", funcname, args, Hash);
-            ParamPool.Return(args);
+            
             return res;
         }
 
@@ -64,7 +65,7 @@ namespace BlazorBindGen
         {
             var args = GetParamList(param);
             var res= await Module.InvokeAsync<T>("func", funcname, args, Hash);
-            ParamPool.Return(args);
+            
             return res;
         }
 
@@ -73,7 +74,7 @@ namespace BlazorBindGen
             var args = GetParamList(param);
             JObjPtr j = new();
             Module.InvokeVoid("funcref", funcname,args, j.Hash,Hash);
-            ParamPool.Return(args);
+            
             return j;
         }
 
@@ -82,21 +83,21 @@ namespace BlazorBindGen
             JObjPtr j = new();
             var args = GetParamList(param);
             await Module.InvokeVoidAsync("funcref", funcname, args, j.Hash,Hash);
-            ParamPool.Return(args);
+            
             return j;
         }
         public void CallVoid(string funcname, params object[] param)
         {
             var args = GetParamList(param);
             Module.InvokeVoid("funcvoid", funcname, args, Hash);
-            ParamPool.Return(args);
+            
         }
 
         public async void CallVoidAsync(string funcname, params object[] param)
         {
             var args = GetParamList(param);
             await Module.InvokeVoidAsync("funcvoid", funcname, args, Hash);
-            ParamPool.Return(args);
+            
         }
 
         public async ValueTask<JObjPtr> CallRefAwaitedAsync(string funcname, params object[] param)
@@ -106,7 +107,7 @@ namespace BlazorBindGen
             var args = GetParamList(param);
 
             Module.InvokeVoid("funcrefawait", funcname, args, errH, obj.Hash,Hash);
-            ParamPool.Return(args);
+            
 
             await LockHandler.HoldVoid(errH);
             return obj;
@@ -118,7 +119,7 @@ namespace BlazorBindGen
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
             var args = GetParamList(param);
             Module.InvokeVoid("funcvoidawait", funcname, args, errH,Hash);
-            ParamPool.Return(args);
+            
 
             await LockHandler.HoldVoid(errH);
         }
@@ -129,7 +130,7 @@ namespace BlazorBindGen
             var args = GetParamList(param);
 
             Module.InvokeVoid("funcawait", funcname, args, errH, Hash);
-            ParamPool.Return(args);
+            
 
             return await LockHandler.Hold<T>(errH);
 
@@ -142,7 +143,7 @@ namespace BlazorBindGen
             JObjPtr ptr = new();
             var args = GetParamList(param);
             Module.InvokeVoid("construct", classname, args,ptr.Hash,Hash);
-            ParamPool.Return(args);
+            
             return ptr;
         }
 
@@ -154,7 +155,7 @@ namespace BlazorBindGen
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ParamInfo[] GetParamList(params object[] array)
         {
-            var list = ParamPool.Rent(array.Length);
+            var list = new ParamInfo[array.Length];
             var i = 0;
             foreach (var p in array)
             {
