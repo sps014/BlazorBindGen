@@ -14,7 +14,8 @@
 	JWindow win;
 	public JObjPtr sentiment;
 	string predictText;
-    ElementReference canvasRef;
+	ElementReference canvasRef;
+
 	protected override async Task OnInitializedAsync()
 	{
 		await base.OnInitializedAsync();
@@ -23,12 +24,12 @@
 		await P5Task();
 	}
 
-async Task P5Task()
+	async Task P5Task()
 	{
 		await Import("https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/p5.js");
-		var p5 = win.Construct("p5",null,canvasRef);
-		p5.CallVoid("createCanvas",800,600);
-		p5.CallVoid("background",0,120,0,255);
+		var p5 = win.Construct("p5", null, canvasRef);
+		p5.CallVoid("createCanvas", 800, 600);
+		p5.CallVoid("background", 0, 120, 0, 255);
 	}
 	async Task Heavy()
 	{
@@ -36,20 +37,19 @@ async Task P5Task()
 		Console.Clear();
 		var ml5 = win["ml5"];
 		//const sentiment = ml5.sentiment('movieReviews', modelReady);
-		sentiment=ml5.CallRef("sentiment","movieReviews",(JSCallBack)OnModelLoaded);
+		sentiment = ml5.CallRef("sentiment", "movieReviews", (JSCallBack)OnModelLoaded);
 	}
-	
+
 	void Predict()
 	{
-		var v=sentiment.Call<Score>("predict", predictText);
+		var v = sentiment.Call<Score>("predict", predictText);
 		Console.WriteLine(v.score);
 	}
-	
+
 	void OnModelLoaded(params JObjPtr[] args)
 	{
-		Console.WriteLine("Model Loaded: "+args.Length);
+		Console.WriteLine("Model Loaded: " + args.Length);
 	}
 	record Score(double score);
 
 }
-	

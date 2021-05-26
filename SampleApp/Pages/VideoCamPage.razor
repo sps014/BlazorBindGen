@@ -34,10 +34,10 @@
             {
               console.log("Something went wrong!");
             });
-}
+        }
         */
 
-        var video = win.PropRef("document").CallRef("querySelector", "#videoElement");
+        var video = win["document"].CallRef("querySelector", "#videoElement");
         var devices=win.PropRef("navigator").PropRef("mediaDevices");
 
         if(devices.IsFunc("getUserMedia"))

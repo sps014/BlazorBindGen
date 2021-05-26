@@ -92,7 +92,7 @@ namespace BlazorBindGen
             ParamPool.Return(args);
         }
 
-        public async void CallVoidAsync(string funcname, params object[] param)
+        public async ValueTask CallVoidAsync(string funcname, params object[] param)
         {
             var args = GetParamList(param);
             await Module.InvokeVoidAsync("funcvoid", funcname, args.AsSpan()[..param.Length].ToArray(), Hash);
