@@ -11,6 +11,7 @@ namespace BlazorBindGen
     public class JObjPtr:IEquatable<JObjPtr>
     {
         internal int Hash { get; private set; }
+
         private static int _hashTrack = 0;
 
         private static readonly ArrayPool<ParamInfo> ParamPool = ArrayPool<ParamInfo>.Shared;
@@ -119,7 +120,6 @@ namespace BlazorBindGen
             var args = GetParamList(param);
             Module.InvokeVoid("funcvoidawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH,Hash);
             ParamPool.Return(args);
-
             await LockHandler.HoldVoid(errH);
         }
 

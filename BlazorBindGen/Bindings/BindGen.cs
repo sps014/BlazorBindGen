@@ -65,7 +65,5 @@ namespace BlazorBindGen
             await LockHandler.HoldVoid(errH);
         }
 
-       
-        
     }
 }
