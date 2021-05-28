@@ -7,8 +7,8 @@
 
 @if (isLoaded)
 {
-    <input type="text" class="bg-dark text-white" @bind="predictText" placeholder="write review here " />
-    <button class="btn btn-primary" id="mbtn" @onclick="Predict">Sentiment</button><br /><br />
+    <input type="text" class="bg-dark text-white border-light" @bind="predictText" placeholder="write review here " style="font-size:18px"/>
+    <button class="btn btn-primary" id="mbtn" @onclick="Predict">Predict</button><br /><br />
     if(score>0)
     {
         <div class="alert alert-primary">
