@@ -1,17 +1,34 @@
-﻿@page "/"
+﻿@page "/ml5"
 
 @using BlazorBindGen
 @using static BlazorBindGen.BindGen
 
 @inject IJSRuntime runtime
-<input type="text" class="form-controls" @bind="predictText" placeholder="write review here " />
-<button class="btn btn-primary" id="mbtn" @onclick="Predict">Sentiment</button>
 
+@if (isLoaded)
+{
+    <input type="text" class="bg-dark text-white" @bind="predictText" placeholder="write review here " />
+    <button class="btn btn-primary" id="mbtn" @onclick="Predict">Sentiment</button><br /><br />
+    if(score>0)
+    {
+        <div class="alert alert-primary">
+            <p>Review: @GetEmoji() <br />Score: @score</p>
+        </div>
+    }
+}
+else
+{
+    <div class="alert alert-warning">
+        Fetching Movie Review Dataset (~16 MB)
+    </div>
+}
 @code
 {
     JWindow win;
     public JObjPtr sentiment;
     string predictText;
+    bool isLoaded = false;
+    double score;
 
     protected override async Task OnInitializedAsync()
     {
@@ -24,20 +41,33 @@
     async Task ML5Init()
     {
         await Import("https://unpkg.com/ml5@latest/dist/ml5.min.js");
-        var ml5 = win["ml5"]; //or var  ml5= win.PropRef("ml5");
-        //const sentiment = ml5.sentiment('movieReviews', modelReady);
+        Console.Clear();
+        var ml5 = win["ml5"];
         sentiment = ml5.CallRef("sentiment", "movieReviews", (JSCallBack)OnModelLoaded);
     }
 
     void Predict()
     {
         var v = sentiment.Call<Score>("predict", predictText);
-        Console.WriteLine(v.score);
+        score=v.score;
+        StateHasChanged();
     }
 
     void OnModelLoaded(params JObjPtr[] args)
     {
-        Console.WriteLine("Model Loaded , callback with argcount=" + args.Length);
+        isLoaded = true;
+        StateHasChanged();
+    }
+
+    string GetEmoji()
+    {
+        if (score > 0.7)
+            return "😀";
+        else if (score > 0.4)
+            return "😐";
+        else
+            return "😥";
+
     }
 
     record Score(double score);
