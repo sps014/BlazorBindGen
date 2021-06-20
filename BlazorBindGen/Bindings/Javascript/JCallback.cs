@@ -24,7 +24,6 @@ namespace BlazorBindGen
 
             for (int i = 0; i < argLength; i++)
             {
-                Console.WriteLine(argLength);
                 arr[i] = ptr.PropRef($"{i}");
             }
             Executor.Invoke(arr);
