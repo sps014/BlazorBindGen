@@ -1,13 +1,14 @@
 ## BlazorBindGen
  
-A binding generator for JS, Call any JS function or property in C# without writing JS wrappers.
+A binding generator for JS, Call any JS function or property in Blazor Wasm without writing JS wrappers.
 
 #### Why Use BlazorBindGen
 
-* Tiny Overhead of this libary ~13kb
+* very tiny Overhead  ~13kb
 * No need to write JS wrappers
-* Support for Callbacks
+* Support for Callbacks and parameters
 * Write JS code in C# 
+* performant
 
 
 #### Example (using Audio Player from JS)
