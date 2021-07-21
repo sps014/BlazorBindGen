@@ -2,6 +2,7 @@
   [![NuGet Package](https://img.shields.io/badge/nuget-v0.0.1%20Preview%204-orange.svg)](https://www.nuget.org/packages/BlazorBindGen/)
 [![NuGet Badge](https://buildstats.info/nuget/BlazorML5)](https://www.nuget.org/packages/BlazorBindGen/)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+
 A binding generator for JS, Call any JS function or property in Blazor Wasm without writing JS wrappers.
 
 #### Why Use BlazorBindGen
@@ -12,6 +13,12 @@ A binding generator for JS, Call any JS function or property in Blazor Wasm with
 * Write JS code in C# 
 * performant
 
+
+#### Installation
+Use [Nuget Package Manager](https://www.nuget.org/packages/BlazorBindGen/) or .Net CLI 
+```
+dotnet add package BlazorBindGen
+```
 
 #### Example (using Audio Player from JS)
 ```cs
@@ -131,3 +138,6 @@ namespace BlazorApp
 }
 
 ```
+
+#### Warning 
+BlazorBindGen Api are subject to change.
