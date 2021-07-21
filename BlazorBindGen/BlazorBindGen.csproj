@@ -2,6 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Version>0.0.1</Version>
+    <Authors>sps014</Authors>
+    <Company></Company>
+    <Description>A binding generator for JS, Call any JS function or property in Blazor Wasm without writing JS wrappers.</Description>
+    <PackageProjectUrl>https://github.com/sps014/BlazorBindGen</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/sps014/BlazorBindGen</RepositoryUrl>
+    <SignAssembly>False</SignAssembly>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
 
