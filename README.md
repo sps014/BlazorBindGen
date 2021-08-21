@@ -12,7 +12,7 @@ A binding generator for JS, Call any JS function or property in Blazor Wasm with
 * Support for Callbacks and parameters
 * Write JS code in C# 
 * performant
-
+* automatic memory management
 
 #### Installation
 Use [Nuget Package Manager](https://www.nuget.org/packages/BlazorBindGen/) or .Net CLI 
@@ -42,32 +42,88 @@ dotnet add package BlazorBindGen
 
 #### Binding Samples
 
+*** Js code is for explaination purpose only , you do not need to write js code anywhere
+
+##### Import JS libaries when ever you want in C#
+```js  
+// js equivalent
+await import("https://unpkg.com/ml5@latest/dist/ml5.min.js");
+//c# side
+await Import("https://unpkg.com/ml5@latest/dist/ml5.min.js");
+```
+
 ###### Fuction Calls
-you can call any function or set, get any property of js  by using JS Object Reference (JObjPtr) ,everything managed cleaned up automatically.
-*** Js code is for explaination purpose only , you do not need to write it anywhere
 
 ```cs
 
-//js equivalent  (no need to write this , c# code autogenerates it)
+//js equivalent 
 alert("Hello");
 
 //code to call alert in C#
 Window.CallVoid("alert","hello");
 ```
 
+
 ##### Share JS object References
 ```cs
-//js equivalent (no need to write this , c# code autogenerates it)
+//js equivalent 
 var video = document.querySelector("#videoElement");
 //here document is property of window , and dcument has function querySelector
+
+
 //c# code 
 var video = Window["document"].CallRef("querySelector", "#videoElement");
 //["documemnt"] will return reference to Property document of window , another way to write it is 
-var video = Window.PropRef("document").CallRef("querySelector", "#videoElement");
+JObjPtr video = Window.PropRef("document").CallRef("querySelector", "#videoElement");
+//CallRef function calls JS function and Returns a reference to it, instead of whole object 
 ```
 
 
-#### Example (using Audio Player from JS)
+##### Get Set Properties
+```cs
+// equivalent js code 
+var ctx = c.getContext("2d");
+var grd = ctx.createRadialGradient(75, 50, 5, 90, 60, 100);
+ctx.fillStyle = grd;
+		
+//c# side 
+var ctx=canvas.CallRef("getContext","2d");
+var grad = ctx.CallRef("createLinearGradient", 0,0,400,0);
+ctx.SetPropRef("fillStyle",grad); 
+/assign a reference to grad(a JobjPtr reference) to property fillStyle of canvas context
+```
+
+
+##### Mapping JS property to C#
+```cs
+//js
+var audio=new Audio();
+audio.currentTime=6; //set
+console.log(audio.currentTime); //get
+
+//c# equivalent
+JObjPtr _audio=Window.Construct("Audio"); /* js reference to Audio Player */ 
+public double CurrentTime
+{
+    get => _audio.PropVal<double>("currentTime");
+    set => _audio.SetPropVal("currentTime", value);
+}
+```
+##### Map Js Callback to C# event 
+```cs
+
+//cs equivalent
+{
+   var _audio=Window.Construct("Audio"); /* js reference to Audio Player */ 
+   _audio.SetPropCallBack("onloadedmetadata", (_) => OnLoadedMetaData?.Invoke(this));
+}
+public delegate void LoadedMetaDataHandler(object sender);
+public event LoadedMetaDataHandler OnLoadedMetaData;
+
+```
+
+
+#### Example (using ML5 in C# only)
 ```cs
 
 @page "/ml5"
