@@ -90,7 +90,7 @@ ctx.fillStyle = grd;
 var ctx=canvas.CallRef("getContext","2d");
 var grad = ctx.CallRef("createLinearGradient", 0,0,400,0);
 ctx.SetPropRef("fillStyle",grad); 
-/assign a reference to grad(a JobjPtr reference) to property fillStyle of canvas context
+//assign a reference to grad(a JobjPtr reference) to property fillStyle of canvas context
 ```
 
 
@@ -111,6 +111,9 @@ public double CurrentTime
 ```
 ##### Map Js Callback to C# event 
 ```cs
+//js equivalent
+var audio=new Audio();
+audio.onloadeddata=()=>{ console.log("loaded"))};
 
 //cs equivalent
 {
@@ -119,7 +122,6 @@ public double CurrentTime
 }
 public delegate void LoadedMetaDataHandler(object sender);
 public event LoadedMetaDataHandler OnLoadedMetaData;
-
 ```
 
 
