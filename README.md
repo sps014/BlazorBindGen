@@ -209,4 +209,4 @@ else
 ```
 
 #### Warning 
-BlazorBindGen Api are subject to change.
+BlazorBindGen Api is subject to change.
