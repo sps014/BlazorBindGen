@@ -124,9 +124,10 @@ public delegate void LoadedMetaDataHandler(object sender);
 public event LoadedMetaDataHandler OnLoadedMetaData;
 ```
 
+Be sure to check out sampleApp for more examples
 
 #### Example (using ML5 in C# only)
-```cs
+```razor
 
 @page "/ml5"
 
@@ -207,6 +208,8 @@ else
 
 
 ```
+
+
 
 #### Warning 
 BlazorBindGen Api is subject to change.
