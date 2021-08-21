@@ -20,6 +20,39 @@ Use [Nuget Package Manager](https://www.nuget.org/packages/BlazorBindGen/) or .N
 dotnet add package BlazorBindGen
 ```
 
+#### Initialize BindGen
+1. on top of razor page add Import statements
+```razor
+
+@inject IJSRuntime runtime
+@using BlazorBindGen
+@using static BlazorBindGen.BindGen
+@using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>; //optional only needed to simplify callback type name
+```
+
+2. Intitialize the BindGen
+```cs
+ protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await Init(runtime);
+    }
+```
+
+
+#### Binding Samples
+
+###### Alert
+```cs
+//js equivalent
+alert("Hello");
+
+//code to call alert in C#
+Window.CallVoid("alert","hello");
+
+```
+
+
 #### Example (using Audio Player from JS)
 ```cs
 
@@ -27,7 +60,7 @@ dotnet add package BlazorBindGen
 
 @using BlazorBindGen
 @using static BlazorBindGen.BindGen
-@using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>;
+@using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>; //optional only needed to simplify callback type name
 
 @inject IJSRuntime runtime
 
