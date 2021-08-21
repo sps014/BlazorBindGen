@@ -27,7 +27,7 @@ dotnet add package BlazorBindGen
 @inject IJSRuntime runtime
 @using BlazorBindGen
 @using static BlazorBindGen.BindGen
-@using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>; //optional only needed to simplify callback type name
+@using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>; //optional Typedef 
 ```
 
 2. Intitialize the BindGen
@@ -42,14 +42,28 @@ dotnet add package BlazorBindGen
 
 #### Binding Samples
 
-###### Alert
+###### Fuction Calls
+you can call any function or set, get any property of js  by using JS Object Reference (JObjPtr) ,everything managed cleaned up automatically.
+*** Js code is for explaination purpose only , you do not need to write it anywhere
+
 ```cs
-//js equivalent
+
+//js equivalent  (no need to write this , c# code autogenerates it)
 alert("Hello");
 
 //code to call alert in C#
 Window.CallVoid("alert","hello");
+```
 
+##### Share JS object References
+```cs
+//js equivalent (no need to write this , c# code autogenerates it)
+var video = document.querySelector("#videoElement");
+//here document is property of window , and dcument has function querySelector
+//c# code 
+var video = Window["document"].CallRef("querySelector", "#videoElement");
+//["documemnt"] will return reference to Property document of window , another way to write it is 
+var video = Window.PropRef("document").CallRef("querySelector", "#videoElement");
 ```
 
 
