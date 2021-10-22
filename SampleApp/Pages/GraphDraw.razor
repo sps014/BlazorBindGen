@@ -35,7 +35,6 @@
 	async Task Draw()
 	{
 		await Import("https://cytoscape.org/cytoscape.js-tutorial-demo/js/cytoscape.min.js");
-		var cyCanvas= win.PropRef("document").CallRef("getElementById", "cy");
 
 		//converting param from JS object to C# Class (Convert first to JS->JSON->C# class using automatic generators)
 		var param = new Root
@@ -48,7 +47,7 @@
 					new Element{data=new Data{id="ab",source="a",target="b"}},
 				}
 			};
-		JObjPtr _cy = Window.CallRef("cytoscape",param); /* js reference to cytoscape */ 
+		JObjPtr _cy = Window.CallRef("cytoscape",param); 
 	}
 
 	public class Data
