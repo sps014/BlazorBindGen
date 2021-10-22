@@ -52,6 +52,15 @@ await import("https://unpkg.com/ml5@latest/dist/ml5.min.js");
 await Import("https://unpkg.com/ml5@latest/dist/ml5.min.js");
 ```
 
+###### Constructor Calls
+```cs
+//js side
+var audio=new Audio(param);
+
+//c# side code 
+var_audio=Window.Construct("Audio",param); /* js reference to Audio Player */ 
+```
+
 ###### Fuction Calls
 
 ```cs
