@@ -1,0 +1,81 @@
+﻿@page "/graph"
+
+@using BlazorBindGen
+@using static BlazorBindGen.BindGen
+@inject IJSRuntime runtime
+
+<div id="cy" @ref="canvas" ></div>
+
+@code
+{
+	ElementReference canvas;
+
+	JWindow win;
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+		await Init(runtime);
+		win = Window;
+		await Draw();
+	}
+
+	//var cy = cytoscape({
+	//container: document.getElementById('cy'),
+	//elements: [
+	//  { data: { id: 'a' } },
+	//  { data: { id: 'b' } },
+	//  {
+	//    data: {
+	//      id: 'ab',
+	//       source: 'a',
+	//      target: 'b'
+	//    }
+	//  }]
+	//});
+	async Task Draw()
+	{
+		await Import("https://cytoscape.org/cytoscape.js-tutorial-demo/js/cytoscape.min.js");
+		var cyCanvas= win.PropRef("document").CallRef("getElementById", "cy");
+
+		//converting param from JS object to C# Class (Convert first to JS->JSON->C# class using automatic generators)
+		var param = new Root
+			{
+				container = canvas,
+				elements=new List<Element>
+				{
+					new Element{data=new Data{id="a"}},
+					new Element{data=new Data{id="b"}},
+					new Element{data=new Data{id="ab",source="a",target="b"}},
+				}
+			};
+		JObjPtr _cy = Window.CallRef("cytoscape",param); /* js reference to cytoscape */ 
+	}
+
+	public class Data
+    {
+        public string id { get; set; }
+        public string source { get; set; }
+        public string target { get; set; }
+    }
+
+    public class Element
+    {
+        public Data data { get; set; }
+    }
+
+    public class Root
+    {
+        public ElementReference container { get; set; }
+        public List<Element> elements { get; set; }
+    }
+
+}
+<style>
+    #cy {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+    }
+</style>
