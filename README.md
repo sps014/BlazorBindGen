@@ -3,7 +3,7 @@
 [![NuGet Badge](https://buildstats.info/nuget/BlazorBindGen)](https://www.nuget.org/packages/BlazorBindGen/)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
-A binding generator for JS, Call any JS function or property in Blazor Wasm without writing JS wrappers.
+A binding generator for JS, Call any JS function or property in <b>Blazor Wasm</b> without writing JS wrappers.
 
 #### Why Use BlazorBindGen
 
@@ -13,6 +13,8 @@ A binding generator for JS, Call any JS function or property in Blazor Wasm with
 * Write JS code in C# 
 * performant
 * automatic memory management
+
+Note: Blazor Server is unsupported at this moment.
 
 #### Installation
 Use [Nuget Package Manager](https://www.nuget.org/packages/BlazorBindGen/) or .Net CLI 
