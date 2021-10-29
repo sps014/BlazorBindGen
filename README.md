@@ -14,7 +14,6 @@ A binding generator for JS, Call any JS function or property in <b>Blazor Wasm</
 * performant
 * automatic memory management
 
-Note: Blazor Server is unsupported at this moment, as Blazor Server doesn't support `IJSUnmarshalledObjectReference` and `IJSInProcessObjectReference`.
 
 #### Installation
 Use [Nuget Package Manager](https://www.nuget.org/packages/BlazorBindGen/) or .Net CLI 
@@ -222,5 +221,9 @@ else
 
 
 
+
 #### Warning 
-BlazorBindGen Api is subject to change.
+1. BlazorBindGen Api is subject to change, API is not stable.
+2. Note: Blazor Server will be unsupported in favor of wasm performance, as Blazor Server doesn't support `IJSUnmarshalledObjectReference` and `IJSInProcessObjectReference`.<br/>
+[#issue](https://github.com/dotnet/aspnetcore/issues/37926).
+
