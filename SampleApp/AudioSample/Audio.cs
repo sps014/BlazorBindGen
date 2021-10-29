@@ -66,7 +66,7 @@ namespace BlazorApp
         {
             //initialize the core libary 
             if (runtime != null)
-                await BindGen.Init(runtime);
+                await BindGen.InitAsync(runtime);
         }
         
         

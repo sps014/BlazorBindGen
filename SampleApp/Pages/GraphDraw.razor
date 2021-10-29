@@ -14,7 +14,7 @@
 	protected override async Task OnInitializedAsync()
 	{
 		await base.OnInitializedAsync();
-		await Init(runtime);
+		await InitAsync(runtime);
 		win = Window;
 		await Draw();
 	}
@@ -34,7 +34,7 @@
 	//});
 	async Task Draw()
 	{
-		await Import("https://cytoscape.org/cytoscape.js-tutorial-demo/js/cytoscape.min.js");
+		await ImportAsync("https://cytoscape.org/cytoscape.js-tutorial-demo/js/cytoscape.min.js");
 
 		//converting param from JS object to C# Class (Convert first to JS->JSON->C# class using automatic generators)
 		var param = new Root

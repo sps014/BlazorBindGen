@@ -53,10 +53,10 @@ namespace BlazorBindGen
         public bool IsFunc(string propname) => 
             Module.InvokeUnmarshalled<string, int, bool>("isfunc", propname, Hash);
 
-        public T Call<T>(string funcname, params object[] param)
+        public T Call<T>(string funcName, params object[] param)
         {
             var args = GetParamList(param);
-            var res= Module.Invoke<T>("func", funcname, args.AsSpan()[..param.Length].ToArray(), Hash);
+            var res= Module.Invoke<T>("func", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
             ParamPool.Return(args);
             return res;
         }

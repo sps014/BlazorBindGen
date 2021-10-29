@@ -17,14 +17,14 @@
 	protected override async Task OnInitializedAsync()
 	{
 		await base.OnInitializedAsync();
-		await Init(runtime);
+		await InitAsync(runtime);
 		win = Window;
 		await P5Task();
 	}
 
 	async Task P5Task()
 	{
-		await Import("https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/p5.js");
+		await ImportAsync("https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/p5.js");
 		var p5 = win.Construct("p5", null, canvasRef);
 		p5.CallVoid("createCanvas", 800, 600);
 		p5.CallVoid("background", 0, 120, 0, 255);

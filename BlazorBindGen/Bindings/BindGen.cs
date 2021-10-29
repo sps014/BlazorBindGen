@@ -13,7 +13,7 @@ namespace BlazorBindGen
 
         private static DotNetObjectReference<JCallBackHandler> _dotNet;
         private static IJSInProcessRuntime Runtime { get; set; }
-        public static async ValueTask Init(IJSRuntime jsRuntime)
+        public static async ValueTask InitAsync(IJSRuntime jsRuntime)
         {
             Runtime = jsRuntime as IJSInProcessRuntime;
             _moduleTask = new(() => Runtime.InvokeAsync<IJSUnmarshalledObjectReference>(
@@ -56,11 +56,11 @@ namespace BlazorBindGen
 
         private static long FastLength(JObjPtr jsUint8ArrayRef) => 
             Module.InvokeUnmarshalled<int, int>("fastlength", jsUint8ArrayRef.Hash);
-        public static async ValueTask Import(string moduleURL)
+        public static async ValueTask ImportAsync(string moduleUrl)
         {
             long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
 
-            Module.InvokeUnmarshalled<string, int, object>("importmod", moduleURL, (int)errH);
+            Module.InvokeUnmarshalled<string, int, object>("importmod", moduleUrl, (int)errH);
 
             await LockHandler.HoldVoid(errH);
         }
