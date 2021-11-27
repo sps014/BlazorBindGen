@@ -16,13 +16,19 @@ export let propvalwin = (pname) => window[pname];
 export function propref(pname, proph, h) {
     props[proph] = props[h][conv_str(pname)];
 }
+export function proprefgen(pname, proph, h) {
+    props[proph] = props[h][pname];
+}
 export function deleteprop(phash) {
     delete props[phash];
 }
 export let isprop = (pname, h) => typeof (props[h][conv_str(pname)]) != "function"
     && typeof (props[h][conv_str(pname)]) !== undefined;
+export let ispropgen = (pname, h) => typeof (props[h][pname]) != "function"
+    && typeof (props[h][pname]) !== undefined;
 
 export let isfunc = (pname, h) => typeof (props[h][conv_str(pname)]) == "function";
+export let isfuncgen = (pname, h) => typeof (props[h][pname]) == "function";
 
 export function propset(pname, val, h) {
     props[h][pname] = val;
@@ -60,6 +66,12 @@ export async function funcawait(fname, params, eh, h){
 export async function importmod(module, eh) {
     let er = "";
     try { await import(conv_str(module)); }
+    catch (e) { er = e.toString(); }
+    dotnet.invokeMethodAsync("errorMessage", eh, er, null);
+}
+export async function importgen(module, eh) {
+    let er = "";
+    try { await import(module); }
     catch (e) { er = e.toString(); }
     dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }

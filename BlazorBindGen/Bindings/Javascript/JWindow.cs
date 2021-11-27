@@ -13,10 +13,13 @@ namespace BlazorBindGen
 
         private JWindow() { }
 
-        internal static JWindow CreateJWindowObject()
+        internal static async ValueTask<JWindow> CreateJWindowObject()
         {
             JWindow win = new();
-            BindGen.Module.InvokeUnmarshalled<int, object>("createwin", win.Hash);
+            if (BindGen.IsWasm)
+                BindGen.Module.InvokeUnmarshalled<int, object>("createwin", win.Hash);
+            else
+                await BindGen.GeneralizedModule.InvokeVoidAsync("createwin", win.Hash);
             return win;
         }
 
