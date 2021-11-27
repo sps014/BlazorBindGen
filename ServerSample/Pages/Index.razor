@@ -21,13 +21,13 @@
 		await InitAsync(runtime);
 		win = Window;
 
-		await Task.Run(async ()=>await P5Task());
+		await P5Task();
 	}
 
 	async Task P5Task()
 	{
 		await ImportAsync("https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/p5.js");
-		var p5 = win.Construct("p5", null, canvasRef);
+		var p5 =await  win.ConstructAsync("p5", null, canvasRef);
 		await p5.CallVoidAsync("createCanvas", 800, 600);
 		await p5.CallVoidAsync("background", 0, 120, 0, 255);
 	}
