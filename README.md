@@ -3,7 +3,7 @@
 [![NuGet Badge](https://buildstats.info/nuget/BlazorBindGen)](https://www.nuget.org/packages/BlazorBindGen/)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
-A binding generator for JS, Call any JS function or property in <b>Blazor Wasm</b> without writing JS wrappers.
+A binding generator for JS, Call any JS function or property in <b>Blazor Wasm and Server</b> without writing JS wrappers.
 
 #### Why Use BlazorBindGen
 
@@ -224,6 +224,6 @@ else
 
 #### Warning 
 1. BlazorBindGen Api is subject to change, API is not stable.
-2. Note: Blazor Server will be unsupported in favor of wasm performance, as Blazor Server doesn't support `IJSUnmarshalledObjectReference` and `IJSInProcessObjectReference`.<br/>
+2. Note: Blazor Server requires use of Async functions otherwise UI thread will be blocked by it or alternatively you can call BindGen functions on different thread <br/>
 [#issue](https://github.com/dotnet/aspnetcore/issues/37926).
 
