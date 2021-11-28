@@ -16,8 +16,6 @@
 	{
 		if (!firstRender)
 			return;
-
-		await base.OnInitializedAsync();
 		await InitAsync(runtime);
 		win = Window;
 
