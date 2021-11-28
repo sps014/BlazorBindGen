@@ -49,7 +49,7 @@ dotnet add package BlazorBindGen
 
 #### Binding Samples
 
-*** Js code is for explaination purpose only , you do not need to write js code anywhere.
+*** Js code is for explaination purpose only , you do not need to write js code anywhere.<br>
 *** On Server use Async Version of functions or run on different thread other than UI 
 
 ##### Import JS libaries when ever you want in C#
