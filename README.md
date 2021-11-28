@@ -1,5 +1,5 @@
 ## BlazorBindGen
-  [![NuGet Package](https://img.shields.io/badge/nuget-v0.0.1%20Preview%204-orange.svg)](https://www.nuget.org/packages/BlazorBindGen/)
+  [![NuGet Package](https://img.shields.io/badge/nuget-v0.0.2%20Preview%204-orange.svg)](https://www.nuget.org/packages/BlazorBindGen/)
 [![NuGet Badge](https://buildstats.info/nuget/BlazorBindGen)](https://www.nuget.org/packages/BlazorBindGen/)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
@@ -38,12 +38,19 @@ dotnet add package BlazorBindGen
         await base.OnInitializedAsync();
         await Init(runtime);
     }
+    //on Server 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender)
+			return;
+		await InitAsync(runtime);	}
 ```
 
 
 #### Binding Samples
 
-*** Js code is for explaination purpose only , you do not need to write js code anywhere
+*** Js code is for explaination purpose only , you do not need to write js code anywhere.
+*** On Server use Async Version of functions or run on different thread other than UI 
 
 ##### Import JS libaries when ever you want in C#
 ```js  
