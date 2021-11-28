@@ -74,7 +74,14 @@ namespace BlazorBindGen
             if (IsWasm)
                 _ = Module.InvokeUnmarshalled<string, int, int, object>("propsetref", propname, obj.Hash, Hash);
             else
-                GeneralizedModule.InvokeVoidAsync("propsetref", propname, obj.Hash, Hash).GetAwaiter().GetResult();
+                GeneralizedModule.InvokeVoidAsync("propsetrefgen", propname, obj.Hash, Hash).GetAwaiter().GetResult();
+        }
+        public async ValueTask SetPropRefAsync(string propname, JObjPtr obj)
+        {
+            if (IsWasm)
+                _ = Module.InvokeUnmarshalled<string, int, int, object>("propsetref", propname, obj.Hash, Hash);
+            else
+                await GeneralizedModule.InvokeVoidAsync("propsetrefgen", propname, obj.Hash, Hash);
         }
 
         public bool IsProp(string propname)

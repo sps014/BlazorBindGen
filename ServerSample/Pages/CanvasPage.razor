@@ -1,0 +1,52 @@
+﻿@page "/canvas"
+
+@using BlazorBindGen
+@using static BlazorBindGen.BindGen
+@inject IJSRuntime runtime
+
+<canvas id="myCanvas" width="400" height="400"></canvas>
+
+
+@code{
+	JWindow win;
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender)
+			return;
+		await InitAsync(runtime);
+		win = Window;
+		await Task.Run(async() =>
+		{
+				await Heavy();
+		});
+	}
+	async Task Heavy()
+	{
+		/* equivalent js code 
+		var c = document.getElementById("myCanvas");
+		var ctx = c.getContext("2d");
+		var grd = ctx.createRadialGradient(75, 50, 5, 90, 60, 100);
+		grd.addColorStop(0, "red");
+		grd.addColorStop(1, "white");
+		ctx.fillStyle = grd;
+		ctx.fillRect(10, 10, 150, 80);
+		*/
+		
+		var canvas = win.PropRef("document").CallRef("getElementById", "myCanvas");
+		
+		var ctx=canvas.CallRef("getContext","2d");
+		
+		var grad = ctx.CallRef("createLinearGradient", 0,0,400,0);
+		
+		grad.CallVoid("addColorStop", 0, "red");
+		
+		grad.CallVoid("addColorStop", 1, "green");
+		
+		ctx.SetPropRef("fillStyle",grad);
+		
+		await ctx.CallVoidAsync("fillRect", 10, 10, 400, 400);
+		
+		
+	}
+
+}

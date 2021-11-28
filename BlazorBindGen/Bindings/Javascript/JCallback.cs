@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.JSInterop;
 namespace BlazorBindGen
 {
@@ -17,9 +18,9 @@ namespace BlazorBindGen
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         [JSInvokable("ExecuteInCSharp")]
-        public void CallMe(int hash,int argLength)
+        public async Task CallMe(int hash,int argLength)
         {
-            var ptr=GetArgAsPtr(hash);
+            var ptr=await GetArgAsPtrAsync(hash);
             var arr=new JObjPtr[argLength];
 
             for (int i = 0; i < argLength; i++)
@@ -28,10 +29,13 @@ namespace BlazorBindGen
             }
             Executor.Invoke(arr);
         }
-        private JObjPtr GetArgAsPtr(int hash)
+        private async ValueTask<JObjPtr> GetArgAsPtrAsync(int hash)
         {
             JObjPtr ptrs =new();
-            BindGen.Module.InvokeVoid("cleanupargs",hash,ptrs.Hash);
+            if(BindGen.IsWasm)
+                BindGen.Module.InvokeVoid("cleanupargs",hash,ptrs.Hash);
+            else
+                await BindGen.GeneralizedModule.InvokeVoidAsync("cleanupargs", hash, ptrs.Hash);
             return ptrs;
         }
     }

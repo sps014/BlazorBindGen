@@ -1,0 +1,81 @@
+@page "/vcam"
+@using BlazorBindGen
+@using static BlazorBindGen.BindGen
+@inject IJSRuntime runtime
+
+<div id="container">
+    <video autoplay id="videoElement">
+
+    </video>
+</div>
+
+@code{
+    JWindow win;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+        await InitAsync(runtime);
+        win = Window;
+        await Task.Run(async() =>
+		{
+				await Heavy();
+		});
+    }
+    async Task Heavy()
+    {
+        /* equivalent js code
+        var video = document.querySelector("#videoElement");
+
+        if (navigator.mediaDevices.getUserMedia) 
+        {
+          navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream)
+            {
+              video.srcObject = stream;
+            })
+            .catch(function (err0r)
+            {
+              console.log("Something went wrong!");
+            });
+        }
+        */
+
+        var video = win["document"].CallRef("querySelector", "#videoElement");
+        var devices=win.PropRef("navigator").PropRef("mediaDevices");
+
+        if(devices.IsFunc("getUserMedia"))
+        {
+            try
+            {
+                var stream = await devices.CallRefAwaitedAsync("getUserMedia", new { video = true });
+                await video.SetPropRefAsync("srcObject", stream);
+            }catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+        else
+        {
+            Console.WriteLine("No web cam api in browser");
+        }
+
+        
+
+    }
+}
+
+<style>
+    #videoElement {
+        width: 500px;
+        height: 375px;
+        background-color: #666;
+    }
+
+    #container {
+        margin: 0px auto;
+        width: 500px;
+        height: 375px;
+        border: 10px #333 solid;
+    }
+</style>

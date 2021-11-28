@@ -36,6 +36,9 @@ export function propset(pname, val, h) {
 export function propsetref(pname, ph, h) {
     props[h][conv_str(pname)] = props[ph];
 }
+export function propsetrefgen(pname, ph, h) {
+    props[h][pname] = props[ph];
+}
 export function func(fname,params, h) {
     return props[h][fname](...paramexpand(params));
 }
