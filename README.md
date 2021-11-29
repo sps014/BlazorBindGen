@@ -36,14 +36,15 @@ dotnet add package BlazorBindGen
  protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await Init(runtime);
+        await InitAsync(runtime);
     }
     //on Server 
     protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (!firstRender)
 			return;
-		await InitAsync(runtime);	}
+		await InitAsync(runtime);	
+	}
 ```
 
 
@@ -57,7 +58,7 @@ dotnet add package BlazorBindGen
 // js equivalent
 await import("https://unpkg.com/ml5@latest/dist/ml5.min.js");
 //c# side
-await Import("https://unpkg.com/ml5@latest/dist/ml5.min.js");
+await ImportAsync("https://unpkg.com/ml5@latest/dist/ml5.min.js");
 ```
 
 ###### Constructor Calls
