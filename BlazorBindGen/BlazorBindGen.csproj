@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Version>0.0.2</Version>
     <Authors>sps014</Authors>
     <Company></Company>
@@ -19,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.0-rc.1.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.*" />
   </ItemGroup>
 
 </Project>

@@ -7,7 +7,7 @@ let cbCount = 0;
 export function initDotnet(net) {
     dotnet = net;
 }
-export function createwin(h) {
+export function CreateWin(h) {
     props[h] = window;
 }
 let conv_str=(s) => BINDING.conv_string(s);
@@ -66,13 +66,13 @@ export async function funcawait(fname, params, eh, h){
     catch (e) { er = e.toString(); }
     dotnet.invokeMethodAsync("errorMessage", eh, er, v);
 }
-export async function importmod(module, eh) {
+export async function ImportWasm(module, eh) {
     let er = "";
     try { await import(conv_str(module)); }
     catch (e) { er = e.toString(); }
     dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }
-export async function importgen(module, eh) {
+export async function ImportGen(module, eh) {
     let er = "";
     try { await import(module); }
     catch (e) { er = e.toString(); }
@@ -81,13 +81,13 @@ export async function importgen(module, eh) {
 export function construct(classname, param, eh, h) {
     props[eh] = new props[h][classname](...paramexpand(param));
 }
-export function setarrayref(array, eh) {
+export function SetArrayToRef(array, eh) {
     props[eh] = Blazor.platform.toUint8Array(array);
 }
-export function getarrayref(array, eh) {
+export function GetArrayRef(array, eh) {
     Blazor.platform.toUint8Array(array).set(props[eh]);
 }
-export function fastlength(h) {
+export function FastLength(h) {
     return props[h].byteLength;
 }
 export function setcallback(pname, dotnet, h) {
@@ -124,7 +124,7 @@ function callbackHandler() {
     callbackResult[h] = arg;
     this.invokeMethodAsync("ExecuteInCSharp", h, arg.length);
 }
-export function cleanupargs(cbh, h) {
+export function CleanUpArgs(cbh, h) {
     props[h] = callbackResult[cbh];
     delete callbackResult[cbh];
 }

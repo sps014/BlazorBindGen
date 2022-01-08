@@ -4,6 +4,8 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using BlazorBindGen.Bindings;
+using BlazorBindGen.Javascript;
 using static BlazorBindGen.BindGen;
 
 namespace BlazorBindGen
@@ -186,7 +188,7 @@ namespace BlazorBindGen
         public async ValueTask<JObjPtr> CallRefAwaitedAsync(string funcname, params object[] param)
         {
             JObjPtr obj = new();
-            long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
+            long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
             var args = GetParamList(param);
             if(IsWasm)
                 Module.InvokeVoid("funcrefawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH, obj.Hash,Hash);
@@ -202,7 +204,7 @@ namespace BlazorBindGen
 
         public async ValueTask CallVoidAwaitedAsync(string funcname, params object[] param)
         {
-            long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
+            long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
             var args = GetParamList(param);
             if(IsWasm)
                 Module.InvokeVoid("funcvoidawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH,Hash);
@@ -215,7 +217,7 @@ namespace BlazorBindGen
 
         public async ValueTask<T> CallAwaitedAsync<T>(string funcname, params object[] param)
         {
-            long errH = Interlocked.Increment(ref JCallBackHandler.ErrorTrack);
+            long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
             var args = GetParamList(param);
             if(IsWasm)
                 Module.InvokeVoid("funcawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
@@ -308,18 +310,12 @@ namespace BlazorBindGen
             var i = 0;
             foreach (var p in array)
             {
-                if (p is JObjPtr)
-                {
-                    list[i] = new() { Value = (p as JObjPtr).Hash, Type = ParamTypes.JOBJ };
-                }
-                else if (p is Action<JObjPtr[]>)
-                {
-                    list[i] = new() { Type = ParamTypes.CALLBACK, Value = (new JCallback(p as Action<JObjPtr[]>)).DotNet };
-                }
+                if (p is JObjPtr ptr)
+                    list[i] = new() { Value = ptr.Hash, Type = ParamTypes.JObjPtr };
+                else if (p is Action<JObjPtr[]> clbk)
+                    list[i] = new() { Type = ParamTypes.Callback, Value = (new JCallback(clbk).DotNet) };
                 else
-                {
                     list[i] = new() { Value = p };
-                }
                 i++;
             }
             return list;
