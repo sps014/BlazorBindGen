@@ -11,7 +11,7 @@ export function CreateWin(h) {
     props[h] = window;
 }
 let conv_str=(s) => BINDING.conv_string(s);
-export let propval = (pname, h) => props[h][pname];
+export let PropVal = (pname, h) => props[h][pname];
 export let propvalwin = (pname) => window[pname];
 export function propref(pname, proph, h) {
     props[proph] = props[h][conv_str(pname)];
@@ -19,7 +19,7 @@ export function propref(pname, proph, h) {
 export function proprefgen(pname, proph, h) {
     props[proph] = props[h][pname];
 }
-export function deleteprop(phash) {
+export function DeletePtr(phash) {
     delete props[phash];
 }
 export let isprop = (pname, h) => typeof (props[h][conv_str(pname)]) != "function"

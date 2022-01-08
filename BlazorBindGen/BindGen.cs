@@ -1,9 +1,6 @@
 ﻿using BlazorBindGen.Bindings;
 using Microsoft.JSInterop;
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 using BlazorBindGen.Utils;
 
 namespace BlazorBindGen
@@ -39,11 +36,7 @@ namespace BlazorBindGen
         /// Used to load JS isolated modules in WASM
         /// </summary>
         private static IJSInProcessRuntime Runtime { get; set; }
-        /// <summary>
-        /// Used to load JS isolated modules in Server Platforms
-        /// </summary>
-        private static IJSRuntime GeneralizedRuntime { get; set; }
-        
+ 
         /// <summary>
         /// Check whether the current platform is WebAssembly or not (works only in Runtime)
         /// </summary>
@@ -51,12 +44,9 @@ namespace BlazorBindGen
         
         /// <summary>
         /// Initialize the BindGen Library for JS Interops from C#
-        /// Works on
-        /// WebAssembly ✔️
-        /// Server Side ✔️
         /// </summary>
         /// <param name="jsRuntime">JS Runtime object (use `@inject IJSRuntime Runtime` to get one in razor</param>
-        public static async ValueTask InitAsync(IJSRuntime jsRuntime)
+        public static async ValueTask InitAsync([NotNull]IJSRuntime jsRuntime)
         {
             if(OperatingSystem.IsBrowser())
                 IsWasm = true;
@@ -65,7 +55,7 @@ namespace BlazorBindGen
             if (IsWasm)
             {
                 Runtime = jsRuntime as IJSInProcessRuntime;
-                Module=await Runtime.InvokeAsync<IJSUnmarshalledObjectReference>(
+                Module=await Runtime!.InvokeAsync<IJSUnmarshalledObjectReference>(
                    "import", "./_content/BlazorBindGen/BlazorBindGen.js");
             }
             else
@@ -81,7 +71,7 @@ namespace BlazorBindGen
             await InitDotNet();
         }
         /// <summary>
-        /// Pass .NET object to JS so it can call C# for Callbacks notifcation
+        /// Pass .NET object to JS so it can call C# for Callbacks notification
         /// </summary>
         private static async ValueTask InitDotNet()
         {
@@ -105,9 +95,6 @@ namespace BlazorBindGen
         
         /// <summary>
         /// A Fast Method to get JS pointer to byte Array in WASM platform
-        /// Works on
-        /// WebAssembly ✔️
-        /// Server Side ❌
         /// </summary>
         /// <param name="array">Array from C# to sent to JS</param>
         /// <returns>JS pointer</returns>
@@ -123,9 +110,6 @@ namespace BlazorBindGen
         }
         /// <summary>
         /// Fastest way to Get Byte Array from JS pointer in WASM platform
-        /// Works on
-        /// WebAssembly ✔️
-        /// Server Side ❌
         /// </summary>
         /// <param name="jsUint8ArrayRef"> js pointer uint8 array </param>
         /// <returns>byte array representation</returns>
@@ -153,13 +137,10 @@ namespace BlazorBindGen
         /// <param name="jsUint8ArrayRef"> pointer to Unit8Array</param>
         /// <returns>size of array</returns>
         private static long FastLength(JObjPtr jsUint8ArrayRef) => 
-            Module.InvokeUnmarshalled<int, int>("FastLength", jsUint8ArrayRef.Hash);
+            Module.InvokeUnmarshalled<long, int>("FastLength", jsUint8ArrayRef.Hash);
         
         /// <summary>
         /// Import external or internal JS module, equivalent to import in JS
-        /// Works on
-        /// WebAssembly ✔️
-        /// Server Side ❌
         /// </summary>
         /// <param name="moduleUrl">uri of the module</param>
         public static async ValueTask ImportAsync(string moduleUrl)
