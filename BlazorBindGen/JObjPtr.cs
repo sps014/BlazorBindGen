@@ -38,14 +38,11 @@ public class JObjPtr : IEquatable<JObjPtr>
     ~JObjPtr()
     {
         if (IsWasm)
-            _ = Module.InvokeUnmarshalled<long, object>("DeletePtr", Hash);
+            _ = Module.InvokeUnmarshalled<int, object>("DeletePtr", Hash);
         else
-            Task.Run(() =>
-            {
-                GeneralizedModule.DisposeAsync().ConfigureAwait(false);
-            });
+            GeneralizedModule.InvokeVoidAsync("DeletePtr",Hash);
     }
-    
+
     /// <summary>
     /// Get Exact C# Serializable Property Value from JS Object
     /// </summary>
