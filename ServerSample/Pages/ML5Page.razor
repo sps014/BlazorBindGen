@@ -46,7 +46,7 @@ else
     {
         await ImportAsync("https://unpkg.com/ml5@latest/dist/ml5.min.js");
         Console.Clear();
-        var ml5 = win["ml5"];
+        var ml5 = await win.PropRefAsync("ml5");
         sentiment = await ml5.CallRefAsync("sentiment", "movieReviews", (JSCallBack)OnModelLoaded);
     }
 

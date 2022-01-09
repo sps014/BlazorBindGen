@@ -11,7 +11,7 @@ namespace BlazorBindGen;
 /// <summary>
 /// Represents Pointer to a JS Object on whose properties and methods, constructors can be called and manipulated
 /// </summary>
-public class JObjPtr : IEquatable<JObjPtr>
+public class JObjPtr : IEquatable<JObjPtr?>
 {
     /// <summary>
     /// Current Hash of JS Object used for Memory Management 
@@ -21,7 +21,7 @@ public class JObjPtr : IEquatable<JObjPtr>
     /// <summary>
     /// Internal JS Object Pointer Address Allocator (Counter)
     /// </summary>
-    private static int _hashCount = 0;
+    private static int _hashCount;
 
     /// <summary>
     /// Pool of parameters to be reused on multiple calls
@@ -45,6 +45,7 @@ public class JObjPtr : IEquatable<JObjPtr>
 
     /// <summary>
     /// Get Exact C# Serializable Property Value from JS Object
+    /// <para>Equivalent to (obj.prop)</para>
     /// </summary>
     /// <param name="propertyName">Name of property to get</param>
     /// <typeparam name="T">.net type of property </typeparam>
@@ -56,162 +57,274 @@ public class JObjPtr : IEquatable<JObjPtr>
         else
             throw PlatformUnsupportedException.Throw();
     }
-    public async ValueTask<T> PropValAsync<T>(string propname)
+    /// <summary>
+    /// Get Exact C# Serializable Property Value from JS Object (Supported in WASM and Server)
+    /// <para>Equivalent to (obj.prop)</para>
+    /// </summary>
+    /// <param name="propertyName">Name of the property to get</param>
+    /// <typeparam name="T">.net convertable type</typeparam>
+    /// <returns>exact value of property</returns>
+    public async ValueTask<T> PropValAsync<T>(string propertyName)
     {
         if (IsWasm)
-            return await Module.InvokeAsync<T>("propval", propname, Hash);
+            return await Module.InvokeAsync<T>("PropVal", propertyName, Hash);
         else
-            return await GeneralizedModule.InvokeAsync<T>("propval", propname, Hash);
+            return await GeneralizedModule.InvokeAsync<T>("PropVal", propertyName, Hash);
     }
-    public JObjPtr PropRef(string propname)
+    /// <summary>
+    /// Get Reference Pointer to JS Object Property in WASM
+    /// <para>Equivalent to let objPtr=obj.prop</para>
+    /// </summary>
+    /// <param name="propertyName">Name of the property to get </param>
+    /// <returns>Pointer to that property</returns>
+    public JObjPtr PropRef(string propertyName)
     {
         JObjPtr obj = new();
         if (IsWasm)
-            _ = Module.InvokeUnmarshalled<string, int, int, object>("propref", propname, obj.Hash, Hash);
+            _ = Module.InvokeUnmarshalled<string, int, int, object>("PropRef", propertyName, obj.Hash, Hash);
         else
-            GeneralizedModule.InvokeVoidAsync("proprefgen", propname, obj.Hash, Hash).GetAwaiter().GetResult();
+            throw PlatformUnsupportedException.Throw();
+        
         return obj;
     }
-    public async ValueTask<JObjPtr> PropRefAsync(string propname)
+    /// <summary>
+    /// Get Reference Pointer to JS Object Property in WASM and Server
+    /// <para>Equivalent to let objPtr=obj.prop</para>
+    /// </summary>
+    /// <param name="propertyName">Name of the property to get </param>
+    /// <returns>Pointer to that property</returns>
+    public async ValueTask<JObjPtr> PropRefAsync(string propertyName)
     {
         JObjPtr obj = new();
         if (IsWasm)
-            await Module.InvokeVoidAsync("propref", propname, obj.Hash, Hash);
+            await Module.InvokeVoidAsync("PropRef", propertyName, obj.Hash, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("propref", propname, obj.Hash, Hash);
+            await GeneralizedModule.InvokeVoidAsync("PropRefGen", propertyName, obj.Hash, Hash);
         return obj;
     }
-    public void SetPropVal<T>(string propname, T value)
+    /// <summary>
+    /// Set Exact C# Serializable Value on JS Object Property in WASM
+    /// <para>equivalent to eg. obj.prop=value</para>
+    /// </summary>
+    /// <param name="propertyName"></param>
+    /// <param name="value">C# Serializable Value to set to JS object property</param>
+    /// <typeparam name="T"></typeparam>
+    public void SetPropVal<T>(string propertyName, T value)
     {
-        if (!IsWasm)
-            GeneralizedModule.InvokeVoidAsync("propset", propname, value, Hash).GetAwaiter().GetResult();
+        if (IsWasm)
+            Module.InvokeVoid("PropSet", propertyName, value, Hash);
         else
-            Module.InvokeVoid("propset", propname, value, Hash);
+            throw PlatformUnsupportedException.Throw();
     }
 
-    public void SetPropRef(string propname, JObjPtr obj)
+    /// <summary>
+    /// Set a JObjPtr as Property of  JS Object  in WASM 
+    /// <para>equivalent to eg. obj.prop=obj2</para>
+    /// </summary>
+    /// <param name="propertyName"></param>
+    /// <param name="obj">JObjPtr</param>
+    /// <exception cref="PlatformUnsupportedException"></exception>
+    public void SetPropRef(string propertyName, JObjPtr obj)
     {
         if (IsWasm)
-            _ = Module.InvokeUnmarshalled<string, int, int, object>("propsetref", propname, obj.Hash, Hash);
+            _ = Module.InvokeUnmarshalled<string, int, int, object>("PropSetRef", propertyName, obj.Hash, Hash);
         else
-            GeneralizedModule.InvokeVoidAsync("propsetrefgen", propname, obj.Hash, Hash).GetAwaiter().GetResult();
+            throw PlatformUnsupportedException.Throw();
     }
-    public async ValueTask SetPropRefAsync(string propname, JObjPtr obj)
+    
+    /// <summary>
+    /// Set a JObjPtr as Property of  JS Object  in WASM and Server
+    /// <para>equivalent to eg. obj.prop=obj2</para>
+    /// </summary>
+    /// <param name="propertyName"></param>
+    /// <param name="obj"></param>
+    public async ValueTask SetPropRefAsync(string propertyName, JObjPtr obj)
     {
         if (IsWasm)
-            _ = Module.InvokeUnmarshalled<string, int, int, object>("propsetref", propname, obj.Hash, Hash);
+            _ = Module.InvokeUnmarshalled<string, int, int, object>("PropSetRef", propertyName, obj.Hash, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("propsetrefgen", propname, obj.Hash, Hash);
+            await GeneralizedModule.InvokeVoidAsync("PropSetRefGen", propertyName, obj.Hash, Hash);
     }
-
-    public bool IsProp(string propname)
+    
+    /// <summary>
+    /// Check whether property with the given name exists in JS Object in WASM
+    /// </summary>
+    /// <param name="propertyName"></param>
+    /// <returns></returns>
+    /// <exception cref="PlatformUnsupportedException"></exception>
+    public bool IsProp(string propertyName)
     {
         if (IsWasm)
-            return Module.InvokeUnmarshalled<string, int, bool>("isprop", propname, Hash);
+            return Module.InvokeUnmarshalled<string, int, bool>("IsProp", propertyName, Hash);
         else
-            return GeneralizedModule.InvokeAsync<bool>("ispropgen", propname, Hash).GetAwaiter().GetResult();
+            throw PlatformUnsupportedException.Throw();
     }
-    public async ValueTask<bool> IsPropAsync(string propname)
+    /// <summary>
+    /// Check whether property with the given name exists in JS Object in WASM and Server
+    /// </summary>
+    /// <param name="propertyName"></param>
+    /// <returns></returns>
+    public async ValueTask<bool> IsPropAsync(string propertyName)
     {
         if (IsWasm)
-            return Module.InvokeUnmarshalled<string, int, bool>("isprop", propname, Hash);
+            return Module.InvokeUnmarshalled<string, int, bool>("IsProp", propertyName, Hash);
         else
-            return await GeneralizedModule.InvokeAsync<bool>("ispropgen", propname, Hash);
+            return await GeneralizedModule.InvokeAsync<bool>("IsPropGen", propertyName, Hash);
     }
-    public bool IsFunc(string propname)
+    
+    /// <summary>
+    /// Check whether function with the given name exists in JS Object in WASM
+    /// </summary>
+    /// <param name="propertyName"></param>
+    /// <returns></returns>
+    /// <exception cref="PlatformUnsupportedException"></exception>
+    public bool IsFunc(string propertyName)
     {
         if (IsWasm)
-            return Module.InvokeUnmarshalled<string, int, bool>("isfunc", propname, Hash);
+            return Module.InvokeUnmarshalled<string, int, bool>("IsFunc", propertyName, Hash);
         else
-            return GeneralizedModule.InvokeAsync<bool>("isfuncgen", propname, Hash).GetAwaiter().GetResult();
+            throw PlatformUnsupportedException.Throw();
     }
-    public async ValueTask<bool> IsFuncAsync(string propname)
+    /// <summary>
+    /// Check whether function with the given name exists in JS Object in WASM and Server
+    /// </summary>
+    /// <param name="propertyName"></param>
+    /// <returns></returns>
+    public async ValueTask<bool> IsFuncAsync(string propertyName)
     {
         if (IsWasm)
-            return Module.InvokeUnmarshalled<string, int, bool>("isfunc", propname, Hash);
+            return Module.InvokeUnmarshalled<string, int, bool>("IsFunc", propertyName, Hash);
         else
-            return await GeneralizedModule.InvokeAsync<bool>("isfuncgen", propname, Hash);
+            return await GeneralizedModule.InvokeAsync<bool>("IsFuncGen", propertyName, Hash);
     }
-
+    
+    /// <summary>
+    /// Call a function with the given name in JS Object in WASM
+    /// <para>equivalent to obj.func(param1,param2)</para>
+    /// </summary>
+    /// <param name="funcName">Name of the Function</param>
+    /// <param name="param">Parameter to the function</param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns>.NET Serializable Value</returns>
+    /// <exception cref="PlatformUnsupportedException"></exception>
     public T Call<T>(string funcName, params object[] param)
     {
         var args = GetParamList(param);
         T res;
         if (IsWasm)
-            res = Module.Invoke<T>("func", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
+            res = Module.Invoke<T>("Func", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
         else
-            res = GeneralizedModule.InvokeAsync<T>("func", funcName, args.AsSpan()[..param.Length].ToArray(), Hash).GetAwaiter().GetResult();
+            throw PlatformUnsupportedException.Throw();
 
         ParamPool.Return(args);
         return res;
     }
-
-    public async ValueTask<T> CallAsync<T>(string funcname, params object[] param)
+    /// <summary>
+    /// Call a function with the given name in JS Object in WASM and Server
+    /// <para>equivalent to obj.func(param1,param2)</para>
+    /// </summary>
+    /// <param name="funcName"></param>
+    /// <param name="param"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public async ValueTask<T> CallAsync<T>(string funcName, params object[] param)
     {
         var args = GetParamList(param);
         T res;
         if (IsWasm)
-            res = await Module.InvokeAsync<T>("func", funcname, args.AsSpan()[..param.Length].ToArray(), Hash);
+            res = await Module.InvokeAsync<T>("Func", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
         else
-            res = await GeneralizedModule.InvokeAsync<T>("func", funcname, args.AsSpan()[..param.Length].ToArray(), Hash);
+            res = await GeneralizedModule.InvokeAsync<T>("Func", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
 
         ParamPool.Return(args);
         return res;
     }
-
-    public JObjPtr CallRef(string funcname, params object[] param)
+    /// <summary>
+    /// Call a function with the given name in JS Object that return Ptr as result in WASM 
+    /// <para>equivalent to let objPtr=obj.func(param1,param2)</para>
+    /// </summary>
+    /// <param name="funcName"></param>
+    /// <param name="param"></param>
+    /// <returns></returns>
+    /// <exception cref="PlatformUnsupportedException"></exception>
+    public JObjPtr CallRef(string funcName, params object[] param)
     {
         var args = GetParamList(param);
         JObjPtr j = new();
         if (IsWasm)
-            Module.InvokeVoid("funcref", funcname, args.AsSpan()[..param.Length].ToArray(), j.Hash, Hash);
+            Module.InvokeVoid("FuncRef", funcName, args.AsSpan()[..param.Length].ToArray(), j.Hash, Hash);
         else
-            GeneralizedModule.InvokeVoidAsync("funcref", funcname, args.AsSpan()[..param.Length].ToArray(), j.Hash, Hash).GetAwaiter().GetResult();
+            throw PlatformUnsupportedException.Throw();
         ParamPool.Return(args);
         return j;
     }
-
-    public async ValueTask<JObjPtr> CallRefAsync(string funcname, params object[] param)
+    /// <summary>
+    /// Call a function with the given name in JS Object that return Ptr as result in WASM and Server
+    /// <para>equivalent to let objPtr=obj.func(param1,param2)</para>
+    /// </summary>
+    /// <param name="funcName"></param>
+    /// <param name="param"></param>
+    /// <returns></returns>
+    public async ValueTask<JObjPtr> CallRefAsync(string funcName, params object[] param)
     {
         JObjPtr j = new();
         var args = GetParamList(param);
         if (IsWasm)
-            await Module.InvokeVoidAsync("funcref", funcname, args.AsSpan()[..param.Length].ToArray(), j.Hash, Hash);
+            await Module.InvokeVoidAsync("FuncRef", funcName, args.AsSpan()[..param.Length].ToArray(), j.Hash, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("funcref", funcname, args.AsSpan()[..param.Length].ToArray(), j.Hash, Hash);
+            await GeneralizedModule.InvokeVoidAsync("FuncRef", funcName, args.AsSpan()[..param.Length].ToArray(), j.Hash, Hash);
         ParamPool.Return(args);
         return j;
     }
-    public void CallVoid(string funcname, params object[] param)
+    
+    /// <summary>
+    /// Call a function with the given name in JS Object that returns void  (WASM)
+    /// <para>equivalent to obj.func(param1)</para>
+    /// </summary>
+    /// <param name="funcName"></param>
+    /// <param name="param"></param>
+    /// <exception cref="PlatformUnsupportedException"></exception>
+    public void CallVoid(string funcName, params object[] param)
     {
         var args = GetParamList(param);
         if (IsWasm)
-            Module.InvokeVoid("funcvoid", funcname, args.AsSpan()[..param.Length].ToArray(), Hash);
+            Module.InvokeVoid("FuncVoid", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
         else
-            GeneralizedModule.InvokeVoidAsync("funcvoid", funcname, args.AsSpan()[..param.Length].ToArray(), Hash)
-                .GetAwaiter().GetResult();
+            throw PlatformUnsupportedException.Throw();
         ParamPool.Return(args);
     }
-
-    public async ValueTask CallVoidAsync(string funcname, params object[] param)
+    /// <summary>
+    /// Call a function with the given name in JS Object that returns void ( WASM and Server )
+    /// <para>equivalent to obj.func(param1)</para>
+    /// </summary>
+    /// <param name="funcName"></param>
+    /// <param name="param"></param>
+    public async ValueTask CallVoidAsync(string funcName, params object[] param)
     {
         var args = GetParamList(param);
         if (IsWasm)
-            await Module.InvokeVoidAsync("funcvoid", funcname, args.AsSpan()[..param.Length].ToArray(), Hash);
+            await Module.InvokeVoidAsync("FuncVoid", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("funcvoid", funcname, args.AsSpan()[..param.Length].ToArray(), Hash);
+            await GeneralizedModule.InvokeVoidAsync("FuncVoid", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
         ParamPool.Return(args);
     }
-
-    public async ValueTask<JObjPtr> CallRefAwaitedAsync(string funcname, params object[] param)
+    
+    /// <summary>
+    /// Call a async JS function  that will return pointer as awaited result with the given name in JS Object
+    /// <para>Equivalent to let c=await obj.func(param,param2)</para>
+    /// </summary>
+    /// <param name="funcName"></param>
+    /// <param name="param"></param>
+    /// <returns></returns>
+    public async ValueTask<JObjPtr> CallRefAwaitedAsync(string funcName, params object[] param)
     {
         JObjPtr obj = new();
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
         if (IsWasm)
-            Module.InvokeVoid("funcrefawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH, obj.Hash, Hash);
+            Module.InvokeVoid("FuncRefAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, obj.Hash, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("funcrefawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH, obj.Hash, Hash);
+            await GeneralizedModule.InvokeVoidAsync("FuncRefAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, obj.Hash, Hash);
 
         ParamPool.Return(args);
 
@@ -219,108 +332,163 @@ public class JObjPtr : IEquatable<JObjPtr>
         return obj;
 
     }
+    /// <summary>
+    /// Call a async JS function with the given name in JS Object
+    /// <para>Equivalent to await obj.func(param,param2)</para>
+    /// </summary>
+    /// <param name="funcName"></param>
+    /// <param name="param"></param>
 
-    public async ValueTask CallVoidAwaitedAsync(string funcname, params object[] param)
+    public async ValueTask CallVoidAwaitedAsync(string funcName, params object[] param)
     {
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
         if (IsWasm)
-            Module.InvokeVoid("funcvoidawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
+            Module.InvokeVoid("FuncVoidAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("funcvoidawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
+            await GeneralizedModule.InvokeVoidAsync("FuncVoidAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
 
         ParamPool.Return(args);
         await LockHandler.HoldVoid(errH);
     }
-
-    public async ValueTask<T> CallAwaitedAsync<T>(string funcname, params object[] param)
+    
+    /// <summary>
+    /// Call a async JS function  that will return C# Serializable value as awaited result with the given name in JS Object
+    /// </summary>
+    /// <param name="funcName"></param>
+    /// <param name="param"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public async ValueTask<T?> CallAwaitedAsync<T>(string funcName, params object[] param)
     {
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
         if (IsWasm)
-            Module.InvokeVoid("funcawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
+            Module.InvokeVoid("FuncAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("funcawait", funcname, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
+            await GeneralizedModule.InvokeVoidAsync("FuncAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
 
         ParamPool.Return(args);
-
         return await LockHandler.Hold<T>(errH);
-
     }
+    
+    /// <summary>
+    /// Return JSON string Representation of object in WASM
+    /// </summary>
+    /// <returns></returns>
     public string AsJsonText()
     {
         if (IsWasm)
-            return Module.Invoke<string>("asjson", Hash);
+            return Module.Invoke<string>("AsJson", Hash);
         else
-            return GeneralizedModule.InvokeAsync<string>("asjson", Hash).GetAwaiter().GetResult();
+            throw PlatformUnsupportedException.Throw();
 
     }
+    /// <summary>
+    /// Return JSON string representation of object in WASM and server
+    /// </summary>
+    /// <returns></returns>
     public async ValueTask<string> AsJsonTextAsync()
     {
         if (IsWasm)
-            return await Module.InvokeAsync<string>("asjson", Hash);
+            return await Module.InvokeAsync<string>("AsJson", Hash);
         else
-            return await GeneralizedModule.InvokeAsync<string>("asjson", Hash);
+            return await GeneralizedModule.InvokeAsync<string>("AsJson", Hash);
     }
+    /// <summary>
+    /// Convert JS Object to C# Object in WASM
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    /// <exception cref="PlatformUnsupportedException"></exception>
     public T To<T>()
     {
         if (IsWasm)
-            return Module.Invoke<T>("to", Hash);
+            return Module.Invoke<T>("To", Hash);
         else
-            return GeneralizedModule.InvokeAsync<T>("to", Hash).GetAwaiter().GetResult();
+            throw PlatformUnsupportedException.Throw();
     }
+    /// <summary>
+    /// Convert JS Object to C# Object in WASM and server
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
     public async ValueTask<T> ToAsync<T>()
     {
         if (IsWasm)
-            return await Module.InvokeAsync<T>("to", Hash);
+            return await Module.InvokeAsync<T>("To", Hash);
         else
-            return await GeneralizedModule.InvokeAsync<T>("to", Hash);
+            return await GeneralizedModule.InvokeAsync<T>("To", Hash);
     }
-
-    public JObjPtr Construct(string classname, params object[] param)
+    /// <summary>
+    /// Create instance of JS Object from current object
+    /// <para>let c=new obj.Dom(params)</para>
+    /// </summary>
+    /// <param name="className"></param>
+    /// <param name="param"></param>
+    /// <returns></returns>
+    public JObjPtr Construct(string className, params object[] param)
     {
         JObjPtr ptr = new();
         var args = GetParamList(param);
         if (IsWasm)
-            Module.InvokeVoid("construct", classname, args.AsSpan()[..param.Length].ToArray(), ptr.Hash, Hash);
+            Module.InvokeVoid("Construct", className, args.AsSpan()[..param.Length].ToArray(), ptr.Hash, Hash);
         else
-            GeneralizedModule.InvokeVoidAsync("construct", classname, args.AsSpan()[..param.Length].ToArray(), ptr.Hash, Hash)
-                .GetAwaiter().GetResult();
+            throw PlatformUnsupportedException.Throw();
 
         ParamPool.Return(args);
         return ptr;
     }
-    public async ValueTask<JObjPtr> ConstructAsync(string classname, params object[] param)
+    /// <summary>
+    /// Create instance of JS Object from current object
+    /// <para>let c=new obj.Dom(params)</para>
+    /// </summary>
+    /// <param name="className"></param>
+    /// <param name="param"></param>
+    /// <returns></returns>
+    public async ValueTask<JObjPtr> ConstructAsync(string className, params object[] param)
     {
         JObjPtr ptr = new();
         var args = GetParamList(param);
         if (IsWasm)
-            await Module.InvokeVoidAsync("construct", classname, args.AsSpan()[..param.Length].ToArray(), ptr.Hash, Hash);
+            await Module.InvokeVoidAsync("Construct", className, args.AsSpan()[..param.Length].ToArray(), ptr.Hash, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("construct", classname, args.AsSpan()[..param.Length].ToArray(), ptr.Hash, Hash);
+            await GeneralizedModule.InvokeVoidAsync("Construct", className, args.AsSpan()[..param.Length].ToArray(), ptr.Hash, Hash);
 
         ParamPool.Return(args);
         return ptr;
     }
-
-    public void SetPropCallBack(string propname, Action<JObjPtr[]> action)
+    /// <summary>
+    /// Subscribe to JS Events in WASM
+    /// <para>equivalent to audio.onloadmetadata=methodDelegate;</para>
+    /// </summary>
+    /// <param name="propertyName"></param>
+    /// <param name="action">Method to be executed on event callback</param>
+    /// <exception cref="PlatformUnsupportedException"></exception>
+    public void SetPropCallBack(string propertyName, Action<JObjPtr[]> action)
     {
         var cbk = new JCallback(action);
         if (IsWasm)
-            Module.InvokeVoid("setcallback", propname, cbk.DotNet, Hash);
+            Module.InvokeVoid("SetCallback", propertyName, cbk.DotNet, Hash);
         else
-            GeneralizedModule.InvokeVoidAsync("setcallback", propname, cbk.DotNet, Hash).GetAwaiter().GetResult();
-
+            throw PlatformUnsupportedException.Throw();
     }
-    public async ValueTask SetPropCallBackAsync(string propname, Action<JObjPtr[]> action)
+    /// <summary>
+    /// Subscribe to JS Events in WASM and server
+    /// <para>equivalent to audio.onloadmetadata=methodDelegate;</para>
+    /// </summary>
+    /// <param name="propertyName"></param>
+    /// <param name="action">Method to be executed on event callback</param>
+    public async ValueTask SetPropCallBackAsync(string propertyName, Action<JObjPtr[]> action)
     {
         var cbk = new JCallback(action);
         if (IsWasm)
-            await Module.InvokeVoidAsync("setcallback", propname, cbk.DotNet, Hash);
+            await Module.InvokeVoidAsync("SetCallback", propertyName, cbk.DotNet, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("setcallback", propname, cbk.DotNet, Hash);
+            await GeneralizedModule.InvokeVoidAsync("SetCallback", propertyName, cbk.DotNet, Hash);
 
     }
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ParamInfo[] GetParamList(params object[] array)
     {
@@ -330,22 +498,45 @@ public class JObjPtr : IEquatable<JObjPtr>
         {
             if (p is JObjPtr ptr)
                 list[i] = new() { Value = ptr.Hash, Type = ParamTypes.JObjPtr };
-            else if (p is Action<JObjPtr[]> clbk)
-                list[i] = new() { Type = ParamTypes.Callback, Value = (new JCallback(clbk).DotNet) };
+            else if (p is Action<JObjPtr[]> callback)
+                list[i] = new() { Type = ParamTypes.Callback, Value = (new JCallback(callback).DotNet) };
             else
                 list[i] = new() { Value = p };
             i++;
         }
         return list;
     }
-    public JObjPtr this[string propertyname] => PropRef(propertyname);
+    /// <summary>
+    /// Get JS Object property Pointer
+    /// <para>eg. let doc=window.document</para>
+    /// </summary>
+    /// <param name="propertyName"></param>
+    public JObjPtr this[string propertyName] => PropRef(propertyName);
     public override string ToString() => AsJsonText();
 
-    public bool Equals(JObjPtr other)
+    public bool Equals(JObjPtr? other)
     {
+        if (other == null)
+            return false;
+        
         if (IsWasm)
             return Module.Invoke<bool>("isEqualRef", other.Hash, Hash);
         else
             return GeneralizedModule.InvokeAsync<bool>("isEqualRef", other.Hash, Hash).GetAwaiter().GetResult();
+    }
+    /// <summary>
+    /// Check equality of two object pointers
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public async ValueTask<bool> EqualsAsync(JObjPtr? other)
+    {
+        if (other == null)
+            return false;
+        
+        if (IsWasm)
+            return Module.Invoke<bool>("isEqualRef", other.Hash, Hash);
+        else
+            return await GeneralizedModule.InvokeAsync<bool>("isEqualRef", other.Hash, Hash);
     }
 }

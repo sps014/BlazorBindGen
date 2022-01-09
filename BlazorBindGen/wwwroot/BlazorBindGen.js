@@ -12,55 +12,54 @@ export function CreateWin(h) {
 }
 let conv_str=(s) => BINDING.conv_string(s);
 export let PropVal = (pname, h) => props[h][pname];
-export let propvalwin = (pname) => window[pname];
-export function propref(pname, proph, h) {
+export function PropRef(pname, proph, h) {
     props[proph] = props[h][conv_str(pname)];
 }
-export function proprefgen(pname, proph, h) {
+export function PropRefGen(pname, proph, h) {
     props[proph] = props[h][pname];
 }
 export function DeletePtr(phash) {
     delete props[phash];
 }
-export let isprop = (pname, h) => typeof (props[h][conv_str(pname)]) != "function"
+export let IsProp = (pname, h) => typeof (props[h][conv_str(pname)]) != "function"
     && typeof (props[h][conv_str(pname)]) !== undefined;
-export let ispropgen = (pname, h) => typeof (props[h][pname]) != "function"
+export let IsPropGen = (pname, h) => typeof (props[h][pname]) != "function"
     && typeof (props[h][pname]) !== undefined;
 
-export let isfunc = (pname, h) => typeof (props[h][conv_str(pname)]) == "function";
-export let isfuncgen = (pname, h) => typeof (props[h][pname]) == "function";
+export let IsFunc = (pname, h) => typeof (props[h][conv_str(pname)]) == "function";
+export let IsFuncGen = (pname, h) => typeof (props[h][pname]) == "function";
 
-export function propset(pname, val, h) {
+export function PropSet(pname, val, h) {
     props[h][pname] = val;
 }
-export function propsetref(pname, ph, h) {
+export function PropSetRef(pname, ph, h) {
     props[h][conv_str(pname)] = props[ph];
 }
-export function propsetrefgen(pname, ph, h) {
+export function PropSetRefGen(pname, ph, h) {
     props[h][pname] = props[ph];
 }
-export function func(fname,params, h) {
+export function Func(fname,params, h) {
     return props[h][fname](...paramexpand(params));
 }
-export function funcref(fname, params, ph, h) {
+export function FuncRef(fname, params, ph, h) {
     props[ph] = props[h][fname](...paramexpand(params));
 }
-export function funcvoid(fname, params, h) {
+export function FuncVoid(fname, params, h) {
     props[h][fname](...paramexpand(params));
 }
-export async function funcrefawait(fname, params, eh, ph,h) {
+export async function FuncRefAwait(fname, params, eh, ph,h) {
     let er = "";
     try { props[ph] = await props[h][fname](...paramexpand(params)); }
     catch (e) { er = e.toString(); }
     dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }
-export async function funcvoidawait(fname, params, eh,h) {
+export async function FuncVoidAwait(fname, params, eh,h) {
     let er = "";
     try { await props[h][fname](...paramexpand(params)); }
     catch (e) { er = e.toString(); }
     dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }
-export async function funcawait(fname, params, eh, h){
+export async function FuncAwait(fname, params, eh, h){
     let er = "",v=null;
     try { v = await props[h][fname](...paramexpand(params)); }
     catch (e) { er = e.toString(); }
@@ -78,7 +77,7 @@ export async function ImportGen(module, eh) {
     catch (e) { er = e.toString(); }
     dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }
-export function construct(classname, param, eh, h) {
+export function Construct(classname, param, eh, h) {
     props[eh] = new props[h][classname](...paramexpand(param));
 }
 export function SetArrayToRef(array, eh) {
@@ -90,12 +89,12 @@ export function GetArrayRef(array, eh) {
 export function FastLength(h) {
     return props[h].byteLength;
 }
-export function setcallback(pname, dotnet, h) {
+export function SetCallback(pname, dotnet, h) {
     props[h][pname] = callbackHandler.bind(dotnet);
 }
 
-export let asjson=(h)=>JSON.stringify(props[h]);
-export let to = (h) => props[h];
+export let AsJson=(h)=>JSON.stringify(props[h]);
+export let To = (h) => props[h];
 
 function paramexpand(param) {
     let res = [];

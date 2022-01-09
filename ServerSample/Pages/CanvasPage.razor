@@ -31,18 +31,18 @@
 		ctx.fillStyle = grd;
 		ctx.fillRect(10, 10, 150, 80);
 		*/
+		var canvas =await (await win.PropRefAsync("document"))
+			.CallRefAsync("getElementById", "myCanvas");
 		
-		var canvas = win.PropRef("document").CallRef("getElementById", "myCanvas");
+		var ctx=await canvas.CallRefAsync("getContext","2d");
 		
-		var ctx=canvas.CallRef("getContext","2d");
+		var grad = await ctx.CallRefAsync("createLinearGradient", 0,0,400,0);
 		
-		var grad = ctx.CallRef("createLinearGradient", 0,0,400,0);
+		await grad.CallVoidAsync("addColorStop", 0, "red");
 		
-		grad.CallVoid("addColorStop", 0, "red");
+		await grad.CallVoidAsync("addColorStop", 1, "green");
 		
-		grad.CallVoid("addColorStop", 1, "green");
-		
-		ctx.SetPropRef("fillStyle",grad);
+		await ctx.SetPropRefAsync("fillStyle",grad);
 		
 		await ctx.CallVoidAsync("fillRect", 10, 10, 400, 400);
 		

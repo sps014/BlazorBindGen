@@ -41,10 +41,12 @@
         }
         */
 
-        var video = win["document"].CallRef("querySelector", "#videoElement");
-        var devices=win.PropRef("navigator").PropRef("mediaDevices");
+        var doc = await win.PropRefAsync("document");
+        var video=await doc.CallRefAsync("querySelector", "#videoElement");
+        var navigator=await win.PropRefAsync("navigator");
+        var devices=await navigator.PropRefAsync("mediaDevices");
 
-        if(devices.IsFunc("getUserMedia"))
+        if(await devices.IsFuncAsync("getUserMedia"))
         {
             try
             {

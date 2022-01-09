@@ -132,7 +132,7 @@ namespace BlazorBindGen
             return arr;
         }
         /// <summary>
-        /// Get Length of Uint8 array JS
+        /// Get Length of Uint8 array JS in WASM
         /// </summary>
         /// <param name="jsUint8ArrayRef"> pointer to Unit8Array</param>
         /// <returns>size of array</returns>

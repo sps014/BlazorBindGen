@@ -16,7 +16,7 @@
 		win = Window;
 		Heavy();
 	}
-	void Heavy()
+	async void Heavy()
 	{
 		/* equivalent js code 
 		var c = document.getElementById("myCanvas");
@@ -40,8 +40,8 @@
 		
 		ctx.SetPropRef("fillStyle",grad);
 		
-		ctx.CallVoid("fillRect", 10, 10, 400, 400);
-		
+		await ctx.CallVoidAsync("fillRect", 10, 10, 400, 400);
+
 		
 	}
 
