@@ -9,9 +9,9 @@ A binding generator for JS, Call any JS function or property in <b>Blazor Wasm a
 
 * very tiny Overhead  ~13kb
 * No need to write JS wrappers
-* Support for Callbacks and parameters
+* Support for Callbacks
 * Write JS code in C# 
-* performant
+* WASM and Server Supported
 * automatic memory management
 
 
