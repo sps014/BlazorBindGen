@@ -1,5 +1,5 @@
 ## BlazorBindGen
-  [![NuGet Package](https://img.shields.io/badge/nuget-v0.0.2%20Preview%204-orange.svg)](https://www.nuget.org/packages/BlazorBindGen/)
+  [![NuGet Package](https://img.shields.io/badge/nuget-v0.0.3%20Preview%204-orange.svg)](https://www.nuget.org/packages/BlazorBindGen/)
 [![NuGet Badge](https://buildstats.info/nuget/BlazorBindGen)](https://www.nuget.org/packages/BlazorBindGen/)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
