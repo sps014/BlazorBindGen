@@ -40,7 +40,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
         if (IsWasm)
             _ = Module.InvokeUnmarshalled<int, object>("DeletePtr", Hash);
         else
-            GeneralizedModule.InvokeVoidAsync("DeletePtr",Hash);
+            GeneralizedModule.InvokeVoidAsync("DeletePtr", Hash);
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
             _ = Module.InvokeUnmarshalled<string, int, int, object>("PropRef", propertyName, obj.Hash, Hash);
         else
             throw PlatformUnsupportedException.Throw();
-        
+
         return obj;
     }
     /// <summary>
@@ -97,7 +97,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         JObjPtr obj = new();
         if (IsWasm)
-            await Module.InvokeVoidAsync("PropRef", propertyName, obj.Hash, Hash);
+            _ = Module.InvokeUnmarshalled<string, int, int, object>("PropRef", propertyName, obj.Hash, Hash);
         else
             await GeneralizedModule.InvokeVoidAsync("PropRefGen", propertyName, obj.Hash, Hash);
         return obj;
@@ -131,7 +131,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
         else
             throw PlatformUnsupportedException.Throw();
     }
-    
+
     /// <summary>
     /// Set a JObjPtr as Property of  JS Object  in WASM and Server
     /// <para>equivalent to eg. obj.prop=obj2</para>
@@ -145,7 +145,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
         else
             await GeneralizedModule.InvokeVoidAsync("PropSetRefGen", propertyName, obj.Hash, Hash);
     }
-    
+
     /// <summary>
     /// Check whether property with the given name exists in JS Object in WASM
     /// </summary>
@@ -171,7 +171,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
         else
             return await GeneralizedModule.InvokeAsync<bool>("IsPropGen", propertyName, Hash);
     }
-    
+
     /// <summary>
     /// Check whether function with the given name exists in JS Object in WASM
     /// </summary>
@@ -197,7 +197,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
         else
             return await GeneralizedModule.InvokeAsync<bool>("IsFuncGen", propertyName, Hash);
     }
-    
+
     /// <summary>
     /// Call a function with the given name in JS Object in WASM
     /// <para>equivalent to obj.func(param1,param2)</para>
@@ -276,7 +276,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
         ParamPool.Return(args);
         return j;
     }
-    
+
     /// <summary>
     /// Call a function with the given name in JS Object that returns void  (WASM)
     /// <para>equivalent to obj.func(param1)</para>
@@ -308,7 +308,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
             await GeneralizedModule.InvokeVoidAsync("FuncVoid", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
         ParamPool.Return(args);
     }
-    
+
     /// <summary>
     /// Call a async JS function  that will return pointer as awaited result with the given name in JS Object
     /// <para>Equivalent to let c=await obj.func(param,param2)</para>
@@ -351,7 +351,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
         ParamPool.Return(args);
         await LockHandler.HoldVoid(errH);
     }
-    
+
     /// <summary>
     /// Call a async JS function  that will return C# Serializable value as awaited result with the given name in JS Object
     /// </summary>
@@ -371,7 +371,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
         ParamPool.Return(args);
         return await LockHandler.Hold<T>(errH);
     }
-    
+
     /// <summary>
     /// Return JSON string Representation of object in WASM
     /// </summary>
@@ -488,7 +488,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
             await GeneralizedModule.InvokeVoidAsync("SetCallback", propertyName, cbk.DotNet, Hash);
 
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ParamInfo[] GetParamList(params object[] array)
     {
@@ -507,10 +507,10 @@ public class JObjPtr : IEquatable<JObjPtr?>
         return list;
     }
     /// <summary>
-    /// Get JS Object property Pointer
+    /// Get JS Object property Pointer (works Web Assembly only , throws platform not supported)
     /// <para>eg. let doc=window.document</para>
     /// </summary>
-    /// <param name="propertyName"></param>
+    /// <param name="propertyName">[web assembly only] property name whose reference you want to fetch</param>
     public JObjPtr this[string propertyName] => PropRef(propertyName);
     public override string ToString() => AsJsonText();
 
@@ -518,7 +518,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         if (other == null)
             return false;
-        
+
         if (IsWasm)
             return Module.Invoke<bool>("isEqualRef", other.Hash, Hash);
         else
@@ -533,10 +533,33 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         if (other == null)
             return false;
-        
+
         if (IsWasm)
             return Module.Invoke<bool>("isEqualRef", other.Hash, Hash);
         else
             return await GeneralizedModule.InvokeAsync<bool>("isEqualRef", other.Hash, Hash);
+    }
+
+    /// <summary>
+    /// console.log current object
+    /// </summary>
+    /// <returns></returns>
+    public async Task LogAsync()
+    {
+        if (IsWasm)
+            await Module.InvokeVoidAsync("logPtr", Hash);
+        else
+            await GeneralizedModule.InvokeVoidAsync("logPtr", Hash);
+    }
+    /// <summary>
+    /// console.log current object
+    /// </summary>
+    /// <returns></returns>
+    public void Log()
+    {
+        if (IsWasm)
+             Module.InvokeVoid("logPtr", Hash);
+        else
+            PlatformUnsupportedException.Throw();
     }
 }

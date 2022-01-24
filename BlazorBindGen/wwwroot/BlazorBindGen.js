@@ -130,3 +130,7 @@ export function CleanUpArgs(cbh, h) {
 export function isEqualRef(oh, h) {
     return props[oh] === props[h];
 }
+export function logPtr( h)
+{
+    console.log(props[h]);
+}

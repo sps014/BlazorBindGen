@@ -28,6 +28,7 @@
 		var p5 = win.Construct("p5", null, canvasRef);
 		p5.CallVoid("createCanvas", 800, 600);
 		p5.CallVoid("background", 0, 120, 0, 255);
+		await p5.LogAsync();
 	}
 	
 }

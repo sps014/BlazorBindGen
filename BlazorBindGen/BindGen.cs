@@ -143,7 +143,7 @@ namespace BlazorBindGen
         /// Import external or internal JS module, equivalent to import in JS
         /// </summary>
         /// <param name="moduleUrl">uri of the module</param>
-        public static async ValueTask ImportAsync(string moduleUrl)
+        public static async Task ImportAsync(string moduleUrl)
         {
             //Increment Sync callback id
             long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
