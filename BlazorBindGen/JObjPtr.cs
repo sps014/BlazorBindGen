@@ -116,6 +116,20 @@ public class JObjPtr : IEquatable<JObjPtr?>
         else
             throw PlatformUnsupportedException.Throw();
     }
+    /// <summary>
+    /// Set Exact C# Serializable Value on JS Object Property in WASM and server
+    /// <para>equivalent to eg. obj.prop=value</para>
+    /// </summary>
+    /// <param name="propertyName"></param>
+    /// <param name="value">C# Serializable Value to set to JS object property</param>
+    /// <typeparam name="T"></typeparam>
+    public async Task SetPropValAsync<T>(string propertyName, T value)
+    {
+        if (IsWasm)
+            Module.InvokeVoid("PropSet", propertyName, value, Hash);
+        else
+            await GeneralizedModule.InvokeVoidAsync("PropSet", propertyName, value, Hash);
+    }
 
     /// <summary>
     /// Set a JObjPtr as Property of  JS Object  in WASM 
