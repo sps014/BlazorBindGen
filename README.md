@@ -40,11 +40,11 @@ dotnet add package BlazorBindGen
     }
     //on Server 
     protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (!firstRender)
-			return;
-		await InitAsync(runtime);	
-	}
+    {
+	if (!firstRender)
+		return;
+	await InitAsync(runtime);	
+    }
 ```
 
 
