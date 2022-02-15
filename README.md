@@ -33,7 +33,7 @@ dotnet add package BlazorBindGen
 
 2. Intitialize the BindGen
 ```cs
- protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         await InitAsync(runtime);
