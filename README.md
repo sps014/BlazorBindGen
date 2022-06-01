@@ -60,6 +60,11 @@ dotnet add package BlazorBindGen
 await import("https://unpkg.com/ml5@latest/dist/ml5.min.js");
 //c# side
 await ImportAsync("https://unpkg.com/ml5@latest/dist/ml5.min.js");
+
+// js equivalent, importing modules 
+let ml5=await import("https://unpkg.com/ml5@latest/dist/ml5.min.js");
+//c# side
+var ml5Ptr=await ImportRefAsync("https://unpkg.com/ml5@latest/dist/ml5.min.js");
 ```
 
 ###### Constructor Calls
