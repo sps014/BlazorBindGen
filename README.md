@@ -33,25 +33,26 @@ dotnet add package BlazorBindGen
 
 2. Intitialize the BindGen
 ```cs
- protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         await InitAsync(runtime);
     }
     //on Server 
     protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (!firstRender)
-			return;
-		await InitAsync(runtime);	
-	}
+    {
+	if (!firstRender)
+		return;
+	await InitAsync(runtime);	
+    }
 ```
 
 
 #### Binding Samples
 
-*** Js code is for explaination purpose only , you do not need to write js code anywhere.<br>
-*** On Server use Async Version of functions (non async functions will throw `PlatformNotSupportedException`)
+<b>
+-> Js code is for explaination purpose only , you do not need to write js code anywhere.<br>
+-> On Server use Async Version of functions (non async functions will throw `PlatformNotSupportedException`)</b>
 
 ##### Import JS libaries when ever you want in C#
 ```js  
