@@ -28,6 +28,9 @@
 		var p5 =await  win.ConstructAsync("p5", null, canvasRef);
 		await p5.CallVoidAsync("createCanvas", 800, 600);
 		await p5.CallVoidAsync("background", 0, 120, 0, 255);
+		var c=await ImportRefAsync("https://www.gstatic.com/firebasejs/9.8.2/firebase-app.js");
+		var S=await c.PropValAsync<string>("SDK_VERSION");
+		Console.WriteLine(S);
 	}
 	
 }

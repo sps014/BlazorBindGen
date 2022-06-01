@@ -77,6 +77,12 @@ export async function ImportGen(module, eh) {
     catch (e) { er = e.toString(); }
     dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }
+export async function ImportReturn(module, eh, h) {
+    let er = "", v = null;
+    try { props[h] = await import(module); }
+    catch (e) { er = e.toString(); }
+    dotnet.invokeMethodAsync("errorMessage", eh, er, null);
+}
 export function Construct(classname, param, eh, h) {
     props[eh] = new props[h][classname](...paramexpand(param));
 }

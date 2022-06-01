@@ -156,6 +156,26 @@ namespace BlazorBindGen
             //wait until both runtimes are synced
             await LockHandler.HoldVoid(errH);
         }
+        /// <summary>
+        /// Import external or internal JS module, equivalent to import in JS but with return pointer
+        /// eg. var a =await import("./a.js");
+        /// </summary>
+        /// <param name="moduleUrl">uri of the module</param>
+        public static async Task<JObjPtr> ImportRefAsync(string moduleUrl)
+        {
+            //Increment Sync callback id
+
+            JObjPtr obj = new();
+            long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
+            if (IsWasm)
+                Module.InvokeVoid("ImportReturn", moduleUrl, (int)errH,obj.Hash);
+            else
+                await GeneralizedModule.InvokeVoidAsync("ImportReturn", moduleUrl, (int)errH,obj.Hash);
+            
+            //wait until both runtimes are synced
+            await LockHandler.HoldVoid(errH);
+            return obj;
+        }
 
     }
 }

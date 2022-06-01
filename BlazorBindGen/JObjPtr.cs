@@ -504,7 +504,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static ParamInfo[] GetParamList(params object[] array)
+    internal static ParamInfo[] GetParamList(params object[] array)
     {
         var list = ParamPool.Rent(array.Length);
         var i = 0;

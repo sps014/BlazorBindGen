@@ -5,7 +5,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>0.0.3.2</Version>
+    <Version>0.0.3.3</Version>
     <Authors>sps014</Authors>
     <Company></Company>
     <Description>A binding generator for JS, Call any JS function or property in Blazor Wasm  and Server without writing JS wrappers.</Description>
