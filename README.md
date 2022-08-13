@@ -3,7 +3,7 @@
 [![NuGet Badge](https://buildstats.info/nuget/BlazorBindGen)](https://www.nuget.org/packages/BlazorBindGen/)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
-A binding generator for JS, Call any JS function or property in <b>Blazor Wasm and Server</b> without writing JS wrappers.
+A binding generator for JS, Call any JS function or property in <b>Blazor Wasm and Server (Including MAUI hybrid)</b> without writing JS wrappers.
 
 #### Why Use BlazorBindGen
 
