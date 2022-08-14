@@ -10,6 +10,10 @@ public partial class Audio
 
     [JSProperty]
     public int C;
+
+    [JSProperty]
+    public JObjPtr Another;
+
     [JSFunction]
     public partial void B();
 }

@@ -89,7 +89,7 @@ namespace BlazorBindGenerator
             }
             else if (data.AttribTypes == AttribTypes.Window)
             {
-                writer.WriteLine("private BlazorBindGen.JObjPtr _ptr => BlazorBindGen.BindGen.Window;");
+                writer.WriteLine("internal BlazorBindGen.JObjPtr _ptr => BlazorBindGen.BindGen.Window;");
             }
             else
             {
@@ -158,6 +158,11 @@ namespace BlazorBindGenerator
                         writer.Write(field.Declaration.Type.ToString());
                         writer.WriteLine($"(_ptr.PropRef(\"{propInfo.Name}\"));");
                     }
+                    else if (field.Declaration.Type.ToString().EndsWith("JObjPtr"))
+                    {
+                        writer.Write("return ");
+                        writer.WriteLine($"_ptr.PropRef(\"{propInfo.Name}\");");
+                    }
                     else
                     {
                         writer.Write($"return _ptr.PropVal<{field.Declaration.Type}>(\"");
@@ -178,6 +183,10 @@ namespace BlazorBindGenerator
                     writer.Indent++;
 
                     if (isRefType)
+                    {
+                        writer.WriteLine($"_ptr.SetPropRef(\"{propInfo.Name}\",value._ptr);");
+                    }
+                    else if (field.Declaration.Type.ToString().EndsWith("JObjPtr"))
                     {
                         writer.WriteLine($"_ptr.SetPropRef(\"{propInfo.Name}\",value);");
                     }
