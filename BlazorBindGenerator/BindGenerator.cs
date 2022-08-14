@@ -10,6 +10,11 @@ namespace BlazorBindGenerator
         {
             if (context.SyntaxReceiver is not BindingSyntaxReciever reciever)
                 return;
+
+            foreach(var meta in reciever.MetaDataCollection)
+            {
+                var members=meta.GetMembers();
+            }
         }
 
         public void Initialize(GeneratorInitializationContext context)
