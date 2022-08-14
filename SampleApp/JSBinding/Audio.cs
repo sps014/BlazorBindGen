@@ -1,5 +1,5 @@
 ﻿using BlazorBindGen.Attributes;
-
+using BlazorBindGen;
 namespace SampleApp.JSBinding;
 
 [JSWindow]

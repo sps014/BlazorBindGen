@@ -56,6 +56,20 @@ internal class Metadata
         return null;
 
     }
+    public string Keyword()
+    {
+        if (DataType is RecordDeclarationSyntax rec)
+            return rec.Keyword.ValueText;
+
+        else if (DataType is StructDeclarationSyntax str)
+            return str.Keyword.ValueText;
+
+        else if (DataType is ClassDeclarationSyntax @class)
+            return @class.Keyword.ValueText;
+
+        return string.Empty;
+
+    }
     public IReadOnlyList<MemberMetadata> GetMembers()
     {
         SyntaxList<MemberDeclarationSyntax> members = new();
@@ -109,6 +123,25 @@ internal class Metadata
     public string GetNamespace()
     {
         return GetNamespaceInternal(DataType);
+    }
+    public string GetGenericTypes()
+    {
+        string res = "<";
+        TypeParameterListSyntax? typeParam=null;
+        if (DataType is RecordDeclarationSyntax rec)
+            typeParam = rec.TypeParameterList;
+        else if (DataType is StructDeclarationSyntax str)
+            typeParam = str.TypeParameterList;
+        else if (DataType is ClassDeclarationSyntax @class)
+            typeParam = @class.TypeParameterList;
+
+        if (typeParam is null)
+            return string.Empty;
+
+        res += string.Join(",",typeParam.Parameters.Select(x=>x.Identifier.ValueText));
+
+        
+        return string.Empty;
     }
     private string GetNamespaceInternal<T>(T node) where T : SyntaxNode
     {

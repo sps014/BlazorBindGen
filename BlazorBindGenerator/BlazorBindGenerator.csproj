@@ -25,5 +25,7 @@
 		<Compile Include="..\BlazorBindGenShared\Attributes\JSObjectAttribute.cs" Link="Attributes\JSObjectAttribute.cs" />
 		<Compile Include="..\BlazorBindGenShared\Attributes\JSPropertyAttribute.cs" Link="Attributes\JSPropertyAttribute.cs" />
 		<Compile Include="..\BlazorBindGenShared\Attributes\JSWindowAttribute.cs" Link="Attributes\JSWindowAttribute.cs" />
+		<Compile Include="..\BlazorBindGenShared\IJSObject.cs" Link="IJSObject.cs" />
+
 	</ItemGroup>
 </Project>

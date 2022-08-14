@@ -2,6 +2,7 @@
 using System.CodeDom.Compiler;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -41,9 +42,26 @@ namespace BlazorBindGenerator
                 return;
             }
 
+            writer.WriteLine(ClassHeader(data));
+            writer.WriteLine("{");
+            writer.Indent++;
+            writer.Indent--;
+            writer.WriteLine("}");
 
-
+            Console.WriteLine(ss.ToString());
             context.AddSource($"{data.GetName()}_{nameCount++}.g.cs", SourceText.From(ss.ToString(), System.Text.Encoding.UTF8));
+        }
+
+        private string ClassHeader(Metadata data)
+        {
+            StringBuilder sb = new("");
+            sb.Append(string.Join(" ", data.AccessModifier().Value.Select(x => x.ValueText)));
+            sb.Append(" ");
+            sb.Append(data.Keyword());
+            sb.Append(" ");
+            sb.Append(data.GetName());
+            sb.Append(data.GetGenericTypes()+":BlazorBindGen.IJSObject");
+            return sb.ToString();
         }
 
         private void ReportDiagonostics(string Msg,Metadata data, GeneratorExecutionContext context)
