@@ -17,21 +17,23 @@ internal class BindingSyntaxReciever:ISyntaxReceiver
     {
         if (syntaxNode is AttributeSyntax attribute)
         {
-            if ((attribute.Name.ToString().EndsWith(GetAttributeShortName<JSWindowAttribute>())
+            bool isWindow = attribute.Name.ToString().EndsWith(GetAttributeShortName<JSWindowAttribute>());
+            var type = isWindow ? AttribTypes.Window : AttribTypes.JSObject;
+            if ( (isWindow
                 || attribute.Name.ToString().EndsWith(GetAttributeShortName<JSObjectAttribute>()))
                 && attribute.Parent is AttributeListSyntax attributes)
             {
                 if (attributes.Parent is RecordDeclarationSyntax rec)
                 {
-                    MetaDataCollection.Add(new Metadata(rec, SupportedTypes.Record, attribute));
+                    MetaDataCollection.Add(new Metadata(rec, SupportedTypes.Record, attribute,type));
                 }
                 else if(attributes.Parent is StructDeclarationSyntax str)
                 {
-                    MetaDataCollection.Add(new Metadata(str, SupportedTypes.Struct, attribute));
+                    MetaDataCollection.Add(new Metadata(str, SupportedTypes.Struct, attribute, type));
                 }
                 else if (attributes.Parent is ClassDeclarationSyntax @class)
                 {
-                    MetaDataCollection.Add(new Metadata(@class, SupportedTypes.Class, attribute));
+                    MetaDataCollection.Add(new Metadata(@class, SupportedTypes.Class, attribute, type));
                 }
             }
         }

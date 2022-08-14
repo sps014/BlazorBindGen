@@ -15,11 +15,13 @@ internal class Metadata
     public SyntaxNode DataType { get; set; }
     public SupportedTypes Type { get; set; }
     public AttributeSyntax Attribute { get;set; }
-    public Metadata(SyntaxNode dataType, SupportedTypes type, AttributeSyntax attribute)
+    public AttribTypes AttribTypes { get; set; }
+    public Metadata(SyntaxNode dataType, SupportedTypes type, AttributeSyntax attribute, AttribTypes attribTypes)
     {
         DataType = dataType;
         Type = type;
         Attribute = attribute;
+        AttribTypes = attribTypes;
     }
 
     public string GetName()
@@ -167,4 +169,9 @@ internal enum SupportedTypes
     Struct,
     Class,
     Record
+}
+internal enum AttribTypes
+{
+    Window,
+    JSObject
 }

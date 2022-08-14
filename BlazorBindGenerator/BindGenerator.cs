@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -38,19 +39,33 @@ namespace BlazorBindGenerator
             
             if(data.AccessModifier() is null || !data.AccessModifier().Value.Any(x=>x.ValueText=="partial"))
             {
-                ReportDiagonostics("No partial access modifiers found on type",data,context);
+                ReportDiagonostics("No partial access modifiers found on type ",data,context);
+                return;
+            }
+            if(data.AttribTypes==AttribTypes.JSObject && data.AccessModifier().Value.Any(x => x.ValueText == "static"))
+            {
+                ReportDiagonostics("Object annotated with JSObject can't be static, but found a vialating Type ", data, context);
                 return;
             }
 
             writer.WriteLine(ClassHeader(data));
             writer.WriteLine("{");
             writer.Indent++;
+
+            GenerateInit(data,writer);
+
+            var members = data.GetMembers();
+
+            //generate fields
+            GenerateFieldsProperties(members.Where(x=>x.AttribType==AttributeTypes.Property),data,context,writer);
+
             writer.Indent--;
             writer.WriteLine("}");
 
             Console.WriteLine(ss.ToString());
             context.AddSource($"{data.GetName()}_{nameCount++}.g.cs", SourceText.From(ss.ToString(), System.Text.Encoding.UTF8));
         }
+
 
         private string ClassHeader(Metadata data)
         {
@@ -62,6 +77,32 @@ namespace BlazorBindGenerator
             sb.Append(data.GetName());
             sb.Append(data.GetGenericTypes()+":BlazorBindGen.IJSObject");
             return sb.ToString();
+        }
+        private void GenerateInit(Metadata data,IndentedTextWriter writer)
+        {
+            var isStatic = data.IsStatic();
+            if (data.AttribTypes == AttribTypes.Window && data.IsStatic())
+            {
+                writer.WriteLine("private static BlazorBindGen.JObjPtr _ptr => BlazorBindGen.BindGen.Window;");
+            }
+            else if (data.AttribTypes == AttribTypes.Window)
+            {
+                writer.WriteLine("private BlazorBindGen.JObjPtr _ptr => BlazorBindGen.BindGen.Window;");
+            }
+            else
+            {
+                writer.WriteLine("private BlazorBindGen.JObjPtr _ptr;");
+                writer.WriteLine($"internal {data.GetName()}(BlazorBindGen.JObjPtr ptr)");
+                writer.WriteLine("{");
+                writer.Indent++;
+                writer.WriteLine("_ptr = ptr;");
+                writer.Indent--;
+                writer.WriteLine('}');
+            }
+        }
+
+        private void GenerateFieldsProperties(IEnumerable<MemberMetadata> props, Metadata data, GeneratorExecutionContext context, IndentedTextWriter writer)
+        {
         }
 
         private void ReportDiagonostics(string Msg,Metadata data, GeneratorExecutionContext context)
