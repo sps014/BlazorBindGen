@@ -6,7 +6,10 @@ namespace BlazorBindGen.Attributes;
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
 public class JSPropertyAttribute:Attribute
 {
-    public JSPropertyAttribute(string Name = null)
+    public JSPropertyAttribute(string Name,bool generateGetter=true,bool generateSetter=true)
+    {
+    }
+    public JSPropertyAttribute(bool generateGetter=true, bool generateSetter = true)
     {
     }
 }

@@ -17,6 +17,18 @@ internal class MemberMetadata
         AttribType = types;
     }
 }
+internal class PropertyInfo
+{
+    public bool GenerateGetter { get; }
+    public bool GenerateSetter { get; }
+    public string Name { get; set; }
+    internal PropertyInfo(bool getter, bool setter, string name)
+    {
+        GenerateGetter = getter;
+        GenerateSetter = setter;
+        Name = name;
+    }
+}
 internal enum MemberType
 {
     Field,
