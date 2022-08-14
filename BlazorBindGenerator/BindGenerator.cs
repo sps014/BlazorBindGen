@@ -49,8 +49,15 @@ namespace BlazorBindGenerator
                 ReportDiagonostics("Object annotated with JSObject can't be static, but found a vialating Type ", data, context);
                 return;
             }
+            if (data.AttribTypes == AttribTypes.JSObject)
+            {
+                if (!data.DerivingIJSObject())
+                {
+                    ReportDiagonostics("Must be deriving From IJSObject for type ",data,context);
+                }
+            }
 
-            writer.WriteLine(ClassHeader(data));
+                writer.WriteLine(ClassHeader(data));
             writer.WriteLine("{");
             writer.Indent++;
 
@@ -77,7 +84,12 @@ namespace BlazorBindGenerator
             sb.Append(data.Keyword());
             sb.Append(" ");
             sb.Append(data.GetName());
-            sb.Append(data.GetGenericTypes() + ":BlazorBindGen.IJSObject");
+            sb.Append(data.GetGenericTypes());
+            
+            if(data.AttribTypes==AttribTypes.JSObject)
+            {
+                sb.AppendLine(":BlazorBindGen.IJSObject");
+            }
             return sb.ToString();
         }
         private void GenerateInit(Metadata data, IndentedTextWriter writer)

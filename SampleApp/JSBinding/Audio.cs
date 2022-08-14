@@ -18,7 +18,8 @@ public partial class Audio
     public partial void B();
 }
 
-public class C:IJSObject
+[JSObject]
+public partial class C: IJSObject
 {
     
 }

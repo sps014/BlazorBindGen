@@ -37,6 +37,23 @@ internal class Metadata
 
         return string.Empty;
     }
+    public bool DerivingIJSObject()
+    {
+        BaseListSyntax? syntax=null;
+        if (DataType is RecordDeclarationSyntax rec)
+            syntax = rec.BaseList;
+
+        else if (DataType is StructDeclarationSyntax str)
+            syntax = str.BaseList;
+
+        else if (DataType is ClassDeclarationSyntax @class)
+            syntax = @class.BaseList;
+
+        if (syntax is null)
+            return false;
+
+        return syntax.Types.Any(x => x.ToString().Contains("IJSObject"));
+    }
     public bool IsStatic()
     {
         var mod = AccessModifier();
