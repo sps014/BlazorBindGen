@@ -129,7 +129,10 @@ namespace BlazorBindGenerator
                     propInfo.Name = ToggleFirstLetterCase(field.Declaration.Variables[0].Identifier.ValueText);
                 }
 
-                writer.Write(string.Join(" ", field.Modifiers.Select(x => x.ValueText)));
+                writer.Write("public ");
+                writer.Write(string.Join(" ", field.Modifiers
+                    .Where(x => x.ValueText != "private" && x.ValueText != "public" && x.ValueText != "protected" && x.ValueText != "internal")
+                    .Select(x => x.ValueText)));
                 writer.Write(" ");
 
                 var isRefType = IsRefType(field, data, context);

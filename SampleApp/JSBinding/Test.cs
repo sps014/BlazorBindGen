@@ -9,5 +9,8 @@ public static partial class Win
 {
     [JSFunction("alert")]
     public static partial void Alert(object data);
+    
+    [JSProperty]
+    private static string title;
 }
 
