@@ -13,7 +13,7 @@ partial class Window
     private string Name;
 	
 
-	[JSProperty]//calls setProp
+	[JSProperty]//calls setPropCallback
     [JSCallback] //created maping from JObjPtr[] to relative types
 	private delegate void Callback(int t1);
 }
