@@ -8,20 +8,22 @@ namespace SampleApp.JSBinding;
 public partial class Audio
 {
     [JSProperty(true)]
-    public C A;
+    public Comms A;
 
     [JSProperty]
     public int C;
 
     [JSProperty]
     public JObjPtr Another;
-
     [JSFunction]
-    public partial ValueTask B(int a , int c ,C b);
+    public partial ValueTask<Comms> B(int a, int c, Comms b);
+    [JSFunction]
+    public partial ValueTask B(int a , int c ,Comms b);
+
 }
 
 [JSObject]
-public partial class C
+public partial class Comms
 {
     
 }

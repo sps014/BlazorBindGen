@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 using BlazorBindGen.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,7 +25,7 @@ namespace BlazorBindGenerator
                 HandleMetadata(context, meta);
             }
 
-            context.AddSource($"bindgen.g.cs", 
+            context.AddSource($"bindgen.g.cs",
                 SourceText.From("global using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>;",
                 Encoding.UTF8));
 
@@ -55,7 +56,7 @@ namespace BlazorBindGenerator
                 return;
             }
 
-                writer.WriteLine(ClassHeader(data));
+            writer.WriteLine(ClassHeader(data));
             writer.WriteLine("{");
             writer.Indent++;
 
@@ -68,7 +69,7 @@ namespace BlazorBindGenerator
 
             //generate functions
             GenerateFunctions(members.Where(x => x.AttribType == AttributeTypes.Function), data, context, writer);
-            
+
             writer.Indent--;
             writer.WriteLine("}");
 
@@ -85,8 +86,8 @@ namespace BlazorBindGenerator
             sb.Append(" ");
             sb.Append(data.GetName());
             sb.Append(data.GetGenericTypes());
-            
-            if(data.AttribTypes==AttribTypes.JSObject)
+
+            if (data.AttribTypes == AttribTypes.JSObject)
             {
                 sb.AppendLine(":BlazorBindGen.IJSObject");
             }
@@ -123,12 +124,12 @@ namespace BlazorBindGenerator
                 if (m.Member is not FieldDeclarationSyntax field)
                     continue;
 
-                if(propInfo.Name is null)
+                if (propInfo.Name is null)
                 {
                     propInfo.Name = ToggleFirstLetterCase(field.Declaration.Variables[0].Identifier.ValueText);
                 }
-                
-                writer.Write(string.Join(" ",field.Modifiers.Select(x=>x.ValueText)));
+
+                writer.Write(string.Join(" ", field.Modifiers.Select(x => x.ValueText)));
                 writer.Write(" ");
 
                 var isRefType = IsRefType(field, data, context);
@@ -138,7 +139,7 @@ namespace BlazorBindGenerator
 
                 writer.Write(" ");
 
-                if(field.Declaration.Variables.Count>1)
+                if (field.Declaration.Variables.Count > 1)
                 {
                     ReportDiagonostics($"More than one field variables defined in same line in Type ", data, context);
                     continue;
@@ -148,23 +149,23 @@ namespace BlazorBindGenerator
                     ReportDiagonostics($"A field `{field.Declaration.Variables[0].Identifier.ValueText}` without getter and setter can't be defined ", data, context);
                     continue;
                 }
-                if (field.Modifiers.Any(x => x.ValueText == "const") || field.Modifiers.Any(x=>x.ValueText=="readonly"))
+                if (field.Modifiers.Any(x => x.ValueText == "const") || field.Modifiers.Any(x => x.ValueText == "readonly"))
                 {
                     ReportDiagonostics($"A JS interopable field `{field.Declaration.Variables[0].Identifier.ValueText}` cant be const or readonly  ", data, context);
                     continue;
                 }
-                if(field.Modifiers.Any(x=>x.ValueText=="static") && !data.IsStatic())
+                if (field.Modifiers.Any(x => x.ValueText == "static") && !data.IsStatic())
                 {
                     ReportDiagonostics($"A JS interopable field `{field.Declaration.Variables[0].Identifier.ValueText}` cant be static when class itself is not static for type ", data, context);
                     continue;
                 }
-                
+
                 writer.WriteLine(propInfo.Name);
                 writer.WriteLine("{");
                 writer.Indent++;
 
                 //getter
-                if(propInfo.GenerateGetter)
+                if (propInfo.GenerateGetter)
                 {
                     writer.WriteLine("get");
                     writer.WriteLine("{");
@@ -187,12 +188,12 @@ namespace BlazorBindGenerator
                         writer.Write(propInfo.Name);
                         writer.WriteLine("\");");
                     }
-                    
-                    
+
+
                     writer.Indent--;
                     writer.WriteLine("}");
                 }
-                
+
                 //setter
                 if (propInfo.GenerateSetter)
                 {
@@ -224,7 +225,7 @@ namespace BlazorBindGenerator
         }
         private void GenerateFunctions(IEnumerable<MemberMetadata> props, Metadata data, GeneratorExecutionContext context, IndentedTextWriter writer)
         {
-            foreach(var f in props)
+            foreach (var f in props)
             {
                 if (f.Member is not MethodDeclarationSyntax method)
                     continue;
@@ -241,7 +242,7 @@ namespace BlazorBindGenerator
                 }
 
 
-                var methodInfo = GetMethodInfo(f,context,data);
+                var methodInfo = GetMethodInfo(f, context, data);
 
                 writer.Write(string.Join(" ", method.Modifiers.Select(x => x.ValueText)));
                 //write return type
@@ -251,7 +252,7 @@ namespace BlazorBindGenerator
                 //write name
                 writer.Write(method.Identifier.ValueText);
                 writer.Write("(");
-                if(method.ParameterList is not null)
+                if (method.ParameterList is not null)
                 {
                     writer.Write(method.ParameterList.Parameters.ToString());
                 }
@@ -265,11 +266,13 @@ namespace BlazorBindGenerator
                     {
                         writer.Write("return ");
                     }
-                    
+
                     var isRef = IsReturnTypeRef(method, context, data);
                     var funcName = "Call";
-                    if (isRef)
+
+                    if (isRef || methodInfo.ReturnFullName == "BlazorBindGen.JObjPtr")
                         funcName += "Ref";
+
                     if (methodInfo.IsVoid)
                         funcName += "Void";
                     if (methodInfo.IsAsync && methodInfo.RequireAwait)
@@ -277,11 +280,57 @@ namespace BlazorBindGenerator
                     else if (methodInfo.IsAsync)
                         funcName += "Async";
 
-                    if (!methodInfo.IsVoid && !isRef)
-                        funcName += $"<{method.ReturnType}>";
+                    if (!methodInfo.IsVoid && !isRef && methodInfo.ReturnFullName != "BlazorBindGen.JObjPtr")
+                        if (!methodInfo.IsValueTaskOnly && methodInfo.ReturnFullName.StartsWith("System.Threading.Tasks.ValueTask<"))
+                        {
+                            int ind = methodInfo.ReturnFullName.IndexOf("ValueTask<");
+                            var nt=methodInfo.ReturnFullName.Substring(ind + 10);
+                            nt=nt.Remove(nt.Length - 1, 1);
+                            funcName += $"<{nt}>";
+                        }
+                        else
+                            funcName += $"<{method.ReturnType}>";
 
-                    writer.Write($"_ptr.{funcName}(");
-                    writer.Write(")");
+                    var finalStatement = $"_ptr.{funcName}(";
+
+                    //parse parameters
+                    var semanticModel = context.Compilation
+                           .GetSemanticModel(data.DataType.SyntaxTree);
+
+                    IMethodSymbol symbol = (IMethodSymbol)semanticModel
+                        .GetDeclaredSymbol(method);
+
+                    finalStatement += $"\"{methodInfo.Name}\"";
+                    if (method.ParameterList is not null)
+                    {
+                        finalStatement += ",";
+                        int c = symbol.Parameters.Length;
+                        int i = 0;
+                        foreach (var p in symbol.Parameters)
+                        {
+                            bool isRefParam = p.Type
+                                .GetAttributes()
+                                .Any(x => x.AttributeClass
+                                .ToString() == "BlazorBindGen.Attributes.JSObjectAttribute");
+
+                            finalStatement += method.ParameterList.Parameters[i].Identifier.ValueText;
+                            if (isRefParam)
+                            {
+                                finalStatement += "._ptr";
+                            }
+                            if (i != c - 1)
+                                finalStatement += ',';
+                            i++;
+                        }
+                    }
+
+                    finalStatement += ")";
+
+
+                    if (isRef)
+                        finalStatement = $"new {method.ReturnType}({finalStatement})";
+
+                    writer.Write(finalStatement);
                     writer.WriteLine(";");
                 }
                 writer.Indent--;
@@ -290,7 +339,7 @@ namespace BlazorBindGenerator
             }
         }
 
-        private bool IsRefType(FieldDeclarationSyntax field,Metadata data,GeneratorExecutionContext context)
+        private bool IsRefType(FieldDeclarationSyntax field, Metadata data, GeneratorExecutionContext context)
         {
             var semanticModel = context.Compilation
                .GetSemanticModel(data.DataType.SyntaxTree);
@@ -346,50 +395,50 @@ namespace BlazorBindGenerator
                     return new PropertyInfo(getter, setter, null);
                 }
             }
-            
+
             return new PropertyInfo(true, true, null);
         }
-        private MethodInfo GetMethodInfo(MemberMetadata member,GeneratorExecutionContext context,Metadata data)
+        private MethodInfo GetMethodInfo(MemberMetadata member, GeneratorExecutionContext context, Metadata data)
         {
-            
+
             if (member.Member is not MethodDeclarationSyntax f)
                 return null;
 
             var attr = member.Attribute.ArgumentList;
-            string name=null;
+            string name = null;
             if (attr is not null && attr.Arguments.Count >= 1 && attr.Arguments[0].Expression is LiteralExpressionSyntax syn)
             {
                 if (syn.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.StringLiteralExpression))
                 {
                     name = syn.Token.ValueText;
                 }
-                
+
             }
             name ??= f.Identifier.ValueText;
-            var returnType = GetFullReturnTypeName(f,context,data);
+            var returnType = GetFullReturnTypeName(f, context, data);
             var parameterList = f.ParameterList;
             bool isVoid = returnType.ToString() == "void";
             bool isAsync = returnType.StartsWith("System.Threading.Tasks.ValueTask");
 
-            bool isvt=isVoid = returnType.Equals("System.Threading.Tasks.ValueTask");
+            bool isvt = isVoid = returnType.Equals("System.Threading.Tasks.ValueTask");
 
 
             if (returnType.StartsWith("System.Threading.Tasks.Task"))
             {
-                ReportDiagonostics($"Use ValueTask instead of Task in Type : ",data,context);
+                ReportDiagonostics($"Use ValueTask instead of Task in Type : ", data, context);
             }
-            
+
             bool requireAwait = f.Modifiers.Any(x => x.ValueText == "async");
-            return new MethodInfo(name, returnType, isAsync, isVoid,requireAwait,isvt);
+            return new MethodInfo(name, returnType, isAsync, isVoid, requireAwait, isvt);
         }
-        private string GetFullReturnTypeName(MethodDeclarationSyntax type,GeneratorExecutionContext context,Metadata data)
+        private string GetFullReturnTypeName(MethodDeclarationSyntax type, GeneratorExecutionContext context, Metadata data)
         {
             var semanticModel = context.Compilation
               .GetSemanticModel(data.DataType.SyntaxTree);
 
-            IMethodSymbol symbol =(IMethodSymbol)semanticModel
+            IMethodSymbol symbol = (IMethodSymbol)semanticModel
                 .GetDeclaredSymbol(type);
-            
+
             return symbol.ReturnType.ToString();
         }
         private bool IsReturnTypeRef(MethodDeclarationSyntax type, GeneratorExecutionContext context, Metadata data)
