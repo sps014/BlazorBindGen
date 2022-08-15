@@ -3,6 +3,7 @@
 @using BlazorBindGen
 @using static BlazorBindGen.BindGen
 @using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>;
+@using SampleApp.JSBinding
 
 @inject IJSRuntime runtime
 <div @ref="canvasRef"></div>
@@ -19,7 +20,7 @@
 		await base.OnInitializedAsync();
 		await InitAsync(runtime);
 
-		SampleApp.JSBinding.Win.Alert("Worked"+ Win.Title);
+		Win.Alert("Worked"+ Win.Document.Title);
 
 		win = Window;
 		await P5Task();

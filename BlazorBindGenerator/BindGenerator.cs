@@ -98,7 +98,7 @@ namespace BlazorBindGenerator
             var isStatic = data.IsStatic();
             if (data.AttribTypes == AttribTypes.Window && data.IsStatic())
             {
-                writer.WriteLine("private static BlazorBindGen.JObjPtr _ptr => BlazorBindGen.BindGen.Window;");
+                writer.WriteLine("internal static BlazorBindGen.JObjPtr _ptr => BlazorBindGen.BindGen.Window;");
             }
             else if (data.AttribTypes == AttribTypes.Window)
             {
@@ -106,7 +106,7 @@ namespace BlazorBindGenerator
             }
             else
             {
-                writer.WriteLine("private BlazorBindGen.JObjPtr _ptr;");
+                writer.WriteLine("internal BlazorBindGen.JObjPtr _ptr;");
                 writer.WriteLine($"internal {data.GetName()}(BlazorBindGen.JObjPtr ptr)");
                 writer.WriteLine("{");
                 writer.Indent++;
@@ -126,12 +126,17 @@ namespace BlazorBindGenerator
 
                 if (propInfo.Name is null)
                 {
-                    propInfo.Name = ToggleFirstLetterCase(field.Declaration.Variables[0].Identifier.ValueText);
+                    propInfo.Name = field.Declaration.Variables[0].Identifier.ValueText;
+                }
+                if(field.Modifiers.Any(x =>x.ValueText == "public" || x.ValueText == "protected" || x.ValueText == "internal"))
+                {
+                    ReportDiagonostics("Fields can't be public, protected or internal for type", data, context);
+                    continue;
                 }
 
                 writer.Write("public ");
                 writer.Write(string.Join(" ", field.Modifiers
-                    .Where(x => x.ValueText != "private" && x.ValueText != "public" && x.ValueText != "protected" && x.ValueText != "internal")
+                    .Where(x => x.ValueText != "private")
                     .Select(x => x.ValueText)));
                 writer.Write(" ");
 
@@ -163,7 +168,7 @@ namespace BlazorBindGenerator
                     continue;
                 }
 
-                writer.WriteLine(propInfo.Name);
+                writer.WriteLine(ToggleFirstLetterCase(field.Declaration.Variables[0].Identifier.ValueText));
                 writer.WriteLine("{");
                 writer.Indent++;
 

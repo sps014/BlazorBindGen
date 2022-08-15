@@ -11,6 +11,11 @@ public static partial class Win
     public static partial void Alert(object data);
     
     [JSProperty]
-    private static string title;
+    private static Document document;
 }
-
+[JSObject]
+public partial class Document
+{
+    [JSProperty]
+    private string title;
+}
