@@ -1,5 +1,7 @@
 ﻿using BlazorBindGen.Attributes;
 using BlazorBindGen;
+using System.Threading.Tasks;
+
 namespace SampleApp.JSBinding;
 
 [JSWindow]
@@ -15,11 +17,11 @@ public partial class Audio
     public JObjPtr Another;
 
     [JSFunction]
-    public partial void B();
+    public partial Task B(int a , int c ,C b);
 }
 
 [JSObject]
-public partial class C: IJSObject
+public partial class C
 {
     
 }

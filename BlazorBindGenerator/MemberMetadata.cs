@@ -29,6 +29,22 @@ internal class PropertyInfo
         Name = name;
     }
 }
+internal class MethodInfo
+{
+    public string Name { get; set; }
+    public string ReturnFullName { get; set; }
+    public bool IsAsync { get; set; }
+    public bool IsVoid { get; set; }
+    public bool RequireAwait { get; }
+    public MethodInfo(string name, string returnFullName, bool isAsync, bool isVoid,bool requireAwait)
+    {
+        Name = name;
+        ReturnFullName = returnFullName;
+        IsAsync = isAsync;
+        IsVoid = isVoid;
+        RequireAwait =requireAwait;
+    }
+}
 internal enum MemberType
 {
     Field,

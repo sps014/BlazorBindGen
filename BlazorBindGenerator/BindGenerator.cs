@@ -23,6 +23,11 @@ namespace BlazorBindGenerator
             {
                 HandleMetadata(context, meta);
             }
+
+            context.AddSource($"bindgen.g.cs", 
+                SourceText.From("global using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>;",
+                Encoding.UTF8));
+
         }
 
         public void Initialize(GeneratorInitializationContext context)
@@ -49,13 +54,6 @@ namespace BlazorBindGenerator
                 ReportDiagonostics("Object annotated with JSObject can't be static, but found a vialating Type ", data, context);
                 return;
             }
-            if (data.AttribTypes == AttribTypes.JSObject)
-            {
-                if (!data.DerivingIJSObject())
-                {
-                    ReportDiagonostics("Must be deriving From IJSObject for type ",data,context);
-                }
-            }
 
                 writer.WriteLine(ClassHeader(data));
             writer.WriteLine("{");
@@ -68,13 +66,15 @@ namespace BlazorBindGenerator
             //generate fields
             GenerateFieldsProperties(members.Where(x => x.AttribType == AttributeTypes.Property), data, context, writer);
 
+            //generate functions
+            GenerateFunctions(members.Where(x => x.AttribType == AttributeTypes.Function), data, context, writer);
+            
             writer.Indent--;
             writer.WriteLine("}");
 
             Console.WriteLine(ss.ToString());
             context.AddSource($"{data.GetName()}_{nameCount++}.g.cs", SourceText.From(ss.ToString(), System.Text.Encoding.UTF8));
         }
-
 
         private string ClassHeader(Metadata data)
         {
@@ -150,9 +150,15 @@ namespace BlazorBindGenerator
                 }
                 if (field.Modifiers.Any(x => x.ValueText == "const") || field.Modifiers.Any(x=>x.ValueText=="readonly"))
                 {
-                    ReportDiagonostics($"A JS interopable field `{field.Declaration.Variables[0].Identifier.ValueText}` cant be const or readonly ", data, context);
+                    ReportDiagonostics($"A JS interopable field `{field.Declaration.Variables[0].Identifier.ValueText}` cant be const or readonly  ", data, context);
                     continue;
                 }
+                if(field.Modifiers.Any(x=>x.ValueText=="static") && !data.IsStatic())
+                {
+                    ReportDiagonostics($"A JS interopable field `{field.Declaration.Variables[0].Identifier.ValueText}` cant be static when class itself is not static for type ", data, context);
+                    continue;
+                }
+                
                 writer.WriteLine(propInfo.Name);
                 writer.WriteLine("{");
                 writer.Indent++;
@@ -216,7 +222,46 @@ namespace BlazorBindGenerator
                 writer.WriteLine("}");
             }
         }
-        
+        private void GenerateFunctions(IEnumerable<MemberMetadata> props, Metadata data, GeneratorExecutionContext context, IndentedTextWriter writer)
+        {
+            foreach(var f in props)
+            {
+                if (f.Member is not MethodDeclarationSyntax method)
+                    continue;
+
+                if (method.Modifiers.Any(x => x.ValueText == "static") && !data.IsStatic())
+                {
+                    ReportDiagonostics($"A JS interopable function `{method.Identifier.ValueText}` cant be static when class itself is not static for type ", data, context);
+                    continue;
+                }
+                if (!method.Modifiers.Any(x => x.ValueText == "partial"))
+                {
+                    ReportDiagonostics($"A JS interopable function `{method.Identifier.ValueText}` should have partial modifier for type ", data, context);
+                    continue;
+                }
+
+
+                var methodInfo = GetMethodInfo(f,context,data);
+
+                writer.Write(string.Join(" ", method.Modifiers.Select(x => x.ValueText)));
+                //write return type
+                writer.Write(" ");
+                writer.Write(method.ReturnType.ToString());
+                writer.Write(" ");
+                //write name
+                writer.Write(method.Identifier.ValueText);
+                writer.Write("(");
+                if(method.ParameterList is not null)
+                {
+                    writer.Write(method.ParameterList.Parameters.ToString());
+                }
+                writer.WriteLine(")");
+                writer.WriteLine("{");
+                writer.WriteLine("}");
+
+            }
+        }
+
         private bool IsRefType(FieldDeclarationSyntax field,Metadata data,GeneratorExecutionContext context)
         {
             var semanticModel = context.Compilation
@@ -226,7 +271,9 @@ namespace BlazorBindGenerator
                 .GetDeclaredSymbol(field.Declaration.Variables[0]);
 
             var interfaces = symbol.Type.AllInterfaces;
-            return interfaces.Any(x => x.ToString() == "BlazorBindGen.IJSObject");
+            var attributes = symbol.Type.GetAttributes();
+            return interfaces.Any(x => x.ToString() == "BlazorBindGen.IJSObject")
+                || attributes.Any(x => x.AttributeClass.ToString() == "BlazorBindGen.Attributes.JSObjectAttribute");
         }
         private string ToggleFirstLetterCase(string str)
         {
@@ -274,6 +321,46 @@ namespace BlazorBindGenerator
             
             return new PropertyInfo(true, true, null);
         }
+        private MethodInfo GetMethodInfo(MemberMetadata member,GeneratorExecutionContext context,Metadata data)
+        {
+            
+            if (member.Member is not MethodDeclarationSyntax f)
+                return null;
+
+            var attr = member.Attribute.ArgumentList;
+            string name=null;
+            if (attr is not null && attr.Arguments.Count >= 1 && attr.Arguments[0].Expression is LiteralExpressionSyntax syn)
+            {
+                if (syn.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.StringLiteralExpression))
+                {
+                    name = syn.Token.ValueText;
+                }
+                
+            }
+            name ??= f.Identifier.ValueText;
+            var returnType = GetFullReturnTypeName(f,context,data);
+            var parameterList = f.ParameterList;
+            bool isVoid = returnType.ToString() == "void";
+            bool isAsync = returnType.StartsWith("System.Threading.Tasks.ValueTask");
+            
+            if(returnType.StartsWith("System.Threading.Tasks.Task"))
+            {
+                ReportDiagonostics($"Use ValueTask instead of Task in Type : ",data,context);
+            }
+            
+            bool requireAwait = f.Modifiers.Any(x => x.ValueText == "async");
+            return new MethodInfo(name, returnType, isAsync, isVoid,requireAwait);
+        }
+        private string GetFullReturnTypeName(MethodDeclarationSyntax type,GeneratorExecutionContext context,Metadata data)
+        {
+            var semanticModel = context.Compilation
+              .GetSemanticModel(data.DataType.SyntaxTree);
+
+            IMethodSymbol symbol =(IMethodSymbol)semanticModel
+                .GetDeclaredSymbol(type);
+            return symbol.ReturnType.ToString();
+        }
+
 
         private void ReportDiagonostics(string Msg, Metadata data, GeneratorExecutionContext context)
         {
