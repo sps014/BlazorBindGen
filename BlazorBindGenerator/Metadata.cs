@@ -172,6 +172,8 @@ internal class Metadata
         }
         if (parent is NamespaceDeclarationSyntax ns)
             return ns.Name.ToString();
+        if (parent is FileScopedNamespaceDeclarationSyntax fs)
+            return fs.Name.ToString();
         return null;
     }
     public string GetUsings()

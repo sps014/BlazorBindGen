@@ -19,7 +19,7 @@ namespace BlazorBindGenerator
         {
             if (context.SyntaxReceiver is not BindingSyntaxReciever reciever)
                 return;
-
+            nameCount = 0;
             foreach (var meta in reciever.MetaDataCollection)
             {
                 HandleMetadata(context, meta);
@@ -420,7 +420,7 @@ namespace BlazorBindGenerator
             bool isVoid = returnType.ToString() == "void";
             bool isAsync = returnType.StartsWith("System.Threading.Tasks.ValueTask");
 
-            bool isvt = isVoid = returnType.Equals("System.Threading.Tasks.ValueTask");
+            bool isvt = returnType.Equals("System.Threading.Tasks.ValueTask");
 
 
             if (returnType.StartsWith("System.Threading.Tasks.Task"))

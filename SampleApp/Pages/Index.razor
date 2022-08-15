@@ -18,6 +18,9 @@
 	{
 		await base.OnInitializedAsync();
 		await InitAsync(runtime);
+
+		SampleApp.JSBinding.Win.Alert("Worked");
+
 		win = Window;
 		await P5Task();
 	}
