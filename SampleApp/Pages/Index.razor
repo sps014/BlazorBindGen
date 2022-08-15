@@ -2,7 +2,6 @@
 
 @using BlazorBindGen
 @using static BlazorBindGen.BindGen
-@using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>;
 @using SampleApp.JSBinding
 
 @inject IJSRuntime runtime
@@ -20,7 +19,7 @@
 		await base.OnInitializedAsync();
 		await InitAsync(runtime);
 
-		Win.Alert("Worked"+ Win.Document.Title);
+		Win.Alert("Worked:"+ Win.Document.Title);
 
 		win = Window;
 		await P5Task();

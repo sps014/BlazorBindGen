@@ -6,12 +6,16 @@ partial static class Console
     public partial static void Log(string message);
 }
 
-[JSWindow(Name="window")]
+[JSWindow]
 partial class Window
 {
     [JSProperty(Name = "name")]
     private string Name;
+	
 
+	[JSProperty]//calls setProp
+    [JSCallback] //created maping from JObjPtr[] to relative types
+	private delegate void Callback(int t1);
 }
 
 [JSWindow(Name="document")]
