@@ -70,6 +70,9 @@ namespace BlazorBindGenerator
             //generate functions
             GenerateFunctions(members.Where(x => x.AttribType == AttributeTypes.Function), data, context, writer);
 
+            //generate delegate 
+            GenerateCallbacks(members.Where(x => x.AttribType == AttributeTypes.Callback), data, context, writer);
+
             writer.Indent--;
             writer.WriteLine("}");
 
@@ -344,6 +347,84 @@ namespace BlazorBindGenerator
                 writer.Indent--;
                 writer.WriteLine("}");
 
+            }
+        }
+
+        private void GenerateCallbacks(IEnumerable<MemberMetadata> enumerable, Metadata data,
+            GeneratorExecutionContext context, IndentedTextWriter writer)
+        {
+            var semModel =context.Compilation.GetSemanticModel(data.DataType.SyntaxTree);
+
+            foreach (var f in enumerable)
+            {
+                if (f.Member is not DelegateDeclarationSyntax del)
+                    continue;
+                var name = del.Identifier.ValueText;
+                if(!name.EndsWith("Handler"))
+                {
+                    ReportDiagonostics($"delegate name should be {name}Handler for type ",data,context);
+                    continue;
+                }
+                if (!del.ReturnType.ToString().Equals("void"))
+                {
+                    ReportDiagonostics($"delegate with non void return type not supported for `{name}` in type ", data, context);
+                    continue;
+                }
+                var eventName = name.Replace("Handler",string.Empty);
+
+                writer.WriteLine($"public event {name}? {eventName};");
+                var callbackStubName = $"{name}CallbackStubFunc";
+                //create a callback bodymapper
+                writer.WriteLine($"private void {callbackStubName}(JObjPtr[] result)");
+                writer.WriteLine("{");
+                writer.Indent++;
+
+                writer.WriteLine($"if({eventName} is null)");
+                writer.Indent++;
+                writer.WriteLine("return;");
+                writer.Indent--;
+
+
+                ///map params
+                string leftParam = "";
+                if(del.ParameterList is not null)
+                {
+                    int i = 0;
+                    var namesList = new List<string>();
+                    foreach(var p in del.ParameterList.Parameters)
+                    {
+                        writer.Write($"var p{i} = ");
+                        IParameterSymbol symbol = (IParameterSymbol)semModel.GetDeclaredSymbol(p);
+                        var attr = symbol.Type.GetAttributes();
+                        var isRef = symbol.Type.GetAttributes()
+                            .Any(x => x.AttributeClass
+                            .ToString() == "BlazorBindGen.Attributes.JSObjectAttribute")
+                            || symbol.Type.AllInterfaces.Any(x => x.ToString() == "BlazorBindGen.IJSObject");
+
+                        var isPtr = symbol.Type.ToString()=="BlazorBindGen.JObjPtr";
+
+                        if (isPtr)
+                            writer.WriteLine($"result[{i}];");
+                        else if (isRef)
+                            writer.WriteLine($"new {p.Type}(result[{i}]);");
+                        else
+                            writer.WriteLine($"result[{i}].To<{p.Type}>();");
+                        namesList.Add("p" + i);
+
+                        i++;
+                    }
+                    leftParam=string.Join(",", namesList);
+                    
+                }
+                writer.WriteLine($"{eventName}?.Invoke({leftParam}));");
+
+                writer.Indent--;
+                writer.WriteLine("}");
+                //create IJScallback 
+                /*
+                  private void OnPredictCallback(JObjPtr[] result)
+                    if(OnPredict==null) return;
+                 */
             }
         }
 

@@ -50,13 +50,14 @@ internal class MethodInfo
 internal enum MemberType
 {
     Field,
-    Function
+    Function,
+    Delegate
 }
 internal enum AttributeTypes
 {
     Property,
     Construct,
     Function,
-    Event,
-    ConstructFor
+    ConstructFor,
+    Callback
 }

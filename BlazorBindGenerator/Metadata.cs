@@ -37,23 +37,6 @@ internal class Metadata
 
         return string.Empty;
     }
-    public bool DerivingIJSObject()
-    {
-        BaseListSyntax? syntax=null;
-        if (DataType is RecordDeclarationSyntax rec)
-            syntax = rec.BaseList;
-
-        else if (DataType is StructDeclarationSyntax str)
-            syntax = str.BaseList;
-
-        else if (DataType is ClassDeclarationSyntax @class)
-            syntax = @class.BaseList;
-
-        if (syntax is null)
-            return false;
-
-        return syntax.Types.Any(x => x.ToString().Contains("IJSObject"));
-    }
     public bool IsStatic()
     {
         var mod = AccessModifier();
@@ -115,7 +98,8 @@ internal class Metadata
             {
                 foreach (var attr in attrList.Attributes)
                 {
-                    if (attr.Name.ToString().EndsWith(GetAttributeShortName<JSPropertyAttribute>()))
+                    //handle both delegate and field cases
+                    if (attr.Name.ToString().EndsWith(GetAttributeShortName<JSPropertyAttribute>()) && member.Parent is not DelegateDeclarationSyntax)
                     {
                         filteredMembers.Add(new MemberMetadata(MemberType.Field, member, attr,AttributeTypes.Property));
                     }
@@ -130,6 +114,10 @@ internal class Metadata
                     else if (attr.Name.ToString().Contains(Value))
                     {
                         filteredMembers.Add(new MemberMetadata(MemberType.Function, member, attr, AttributeTypes.ConstructFor));
+                    }
+                    else if (attr.Name.ToString().EndsWith(GetAttributeShortName<JSCallbackAttribute>()))
+                    {
+                        filteredMembers.Add(new MemberMetadata(MemberType.Delegate, member, attr, AttributeTypes.Callback));
                     }
                 }
             }

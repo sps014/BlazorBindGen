@@ -18,4 +18,8 @@ public partial class Document
 {
     [JSProperty]
     private string title;
+
+    [JSProperty]
+    [JSCallback]
+    delegate void OnChangeHandler(int a,Document d);
 }
