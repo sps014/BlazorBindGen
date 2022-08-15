@@ -21,5 +21,9 @@ public partial class Document
 
     [JSProperty]
     [JSCallback]
-    delegate void OnChangeHandler(int a,Document d);
+    public delegate void OnChangeHandler(int a,DoTaskHandler d);
+    [JSCallback]
+    public delegate void DoTaskHandler();
+    [JSFunction("alert")]
+    private partial void Alert(DoTaskHandler data);
 }

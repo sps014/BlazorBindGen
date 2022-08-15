@@ -44,6 +44,7 @@ namespace BlazorBindGenerator
             writer.WriteLine(usings);
             var @namespace = data.GetNamespace();
             writer.WriteLine(@namespace is null ? "" : $"namespace {@namespace};");
+            writer.WriteLine("#nullable enable");
 
             if (data.AccessModifier() is null || !data.AccessModifier().Value.Any(x => x.ValueText == "partial"))
             {
@@ -75,8 +76,10 @@ namespace BlazorBindGenerator
 
             writer.Indent--;
             writer.WriteLine("}");
+            writer.WriteLine("#nullable restore");
 
             Console.WriteLine(ss.ToString());
+
             context.AddSource($"{data.GetName()}_{nameCount++}.g.cs", SourceText.From(ss.ToString(), System.Text.Encoding.UTF8));
         }
 
@@ -323,11 +326,22 @@ namespace BlazorBindGenerator
                                 .GetAttributes()
                                 .Any(x => x.AttributeClass
                                 .ToString() == "BlazorBindGen.Attributes.JSObjectAttribute");
+                            var attrib = p.Type.GetAttributes().FirstOrDefault();
+                            bool isCallbackType = p.Type.GetAttributes()
+                                .Any(x => x.AttributeClass
+                                .ToString().EndsWith("JSCallback"));
 
-                            finalStatement += method.ParameterList.Parameters[i].Identifier.ValueText;
-                            if (isRefParam)
+                            if (isCallbackType)
                             {
-                                finalStatement += "._ptr";
+                                finalStatement += $"(JSCallback){p.Type.Name}CallbackStubFunc";
+                            }
+                            else
+                            {
+                                finalStatement += method.ParameterList.Parameters[i].Identifier.ValueText;
+                                if (isRefParam)
+                                {
+                                    finalStatement += "._ptr";
+                                }
                             }
                             if (i != c - 1)
                                 finalStatement += ',';
@@ -416,7 +430,7 @@ namespace BlazorBindGenerator
                     leftParam=string.Join(",", namesList);
                     
                 }
-                writer.WriteLine($"{eventName}?.Invoke({leftParam}));");
+                writer.WriteLine($"{eventName}?.Invoke({leftParam});");
 
                 writer.Indent--;
                 writer.WriteLine("}");
