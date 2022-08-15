@@ -17,7 +17,7 @@ public partial class Audio
     public JObjPtr Another;
 
     [JSFunction]
-    public partial Task B(int a , int c ,C b);
+    public partial ValueTask B(int a , int c ,C b);
 }
 
 [JSObject]

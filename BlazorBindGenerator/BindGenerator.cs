@@ -257,6 +257,34 @@ namespace BlazorBindGenerator
                 }
                 writer.WriteLine(")");
                 writer.WriteLine("{");
+                writer.Indent++;
+                //writeBody
+                {
+
+                    if (!methodInfo.IsVoid || methodInfo.IsValueTaskOnly)
+                    {
+                        writer.Write("return ");
+                    }
+                    
+                    var isRef = IsReturnTypeRef(method, context, data);
+                    var funcName = "Call";
+                    if (isRef)
+                        funcName += "Ref";
+                    if (methodInfo.IsVoid)
+                        funcName += "Void";
+                    if (methodInfo.IsAsync && methodInfo.RequireAwait)
+                        funcName += "AwaitedAsync";
+                    else if (methodInfo.IsAsync)
+                        funcName += "Async";
+
+                    if (!methodInfo.IsVoid && !isRef)
+                        funcName += $"<{method.ReturnType}>";
+
+                    writer.Write($"_ptr.{funcName}(");
+                    writer.Write(")");
+                    writer.WriteLine(";");
+                }
+                writer.Indent--;
                 writer.WriteLine("}");
 
             }
@@ -342,14 +370,17 @@ namespace BlazorBindGenerator
             var parameterList = f.ParameterList;
             bool isVoid = returnType.ToString() == "void";
             bool isAsync = returnType.StartsWith("System.Threading.Tasks.ValueTask");
-            
-            if(returnType.StartsWith("System.Threading.Tasks.Task"))
+
+            bool isvt=isVoid = returnType.Equals("System.Threading.Tasks.ValueTask");
+
+
+            if (returnType.StartsWith("System.Threading.Tasks.Task"))
             {
                 ReportDiagonostics($"Use ValueTask instead of Task in Type : ",data,context);
             }
             
             bool requireAwait = f.Modifiers.Any(x => x.ValueText == "async");
-            return new MethodInfo(name, returnType, isAsync, isVoid,requireAwait);
+            return new MethodInfo(name, returnType, isAsync, isVoid,requireAwait,isvt);
         }
         private string GetFullReturnTypeName(MethodDeclarationSyntax type,GeneratorExecutionContext context,Metadata data)
         {
@@ -358,9 +389,19 @@ namespace BlazorBindGenerator
 
             IMethodSymbol symbol =(IMethodSymbol)semanticModel
                 .GetDeclaredSymbol(type);
+            
             return symbol.ReturnType.ToString();
         }
+        private bool IsReturnTypeRef(MethodDeclarationSyntax type, GeneratorExecutionContext context, Metadata data)
+        {
+            var semanticModel = context.Compilation
+              .GetSemanticModel(data.DataType.SyntaxTree);
 
+            IMethodSymbol symbol = (IMethodSymbol)semanticModel
+                .GetDeclaredSymbol(type);
+
+            return symbol.ReturnType.GetAttributes().Any(x => x.AttributeClass.ToString() == "BlazorBindGen.Attributes.JSObjectAttribute");
+        }
 
         private void ReportDiagonostics(string Msg, Metadata data, GeneratorExecutionContext context)
         {

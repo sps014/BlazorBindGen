@@ -36,13 +36,15 @@ internal class MethodInfo
     public bool IsAsync { get; set; }
     public bool IsVoid { get; set; }
     public bool RequireAwait { get; }
-    public MethodInfo(string name, string returnFullName, bool isAsync, bool isVoid,bool requireAwait)
+    public bool IsValueTaskOnly { get; set; }
+    public MethodInfo(string name, string returnFullName, bool isAsync, bool isVoid,bool requireAwait,bool isvt)
     {
         Name = name;
         ReturnFullName = returnFullName;
         IsAsync = isAsync;
         IsVoid = isVoid;
         RequireAwait =requireAwait;
+        IsValueTaskOnly = isvt;
     }
 }
 internal enum MemberType
