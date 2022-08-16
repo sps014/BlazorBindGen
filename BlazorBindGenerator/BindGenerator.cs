@@ -27,7 +27,9 @@ namespace BlazorBindGenerator
             }
 
             context.AddSource($"bindgen.g.cs",
-                SourceText.From("global using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>;",
+                SourceText.From(@"global using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>;
+global using BlazorBindGen.Attributes;
+global using BlazorBindGen;",
                 Encoding.UTF8));
 
         }
@@ -330,7 +332,7 @@ namespace BlazorBindGenerator
                             var attrib = p.Type.GetAttributes().FirstOrDefault();
                             bool isCallbackType = p.Type.GetAttributes()
                                 .Any(x => x.AttributeClass
-                                .ToString().EndsWith("JSCallback"));
+                                .ToString().Equals("BlazorBindGen.Attributes.JSCallbackAttribute"));
 
                             if (isCallbackType)
                             {

@@ -1,6 +1,8 @@
 ﻿@page "/ml5"
 
 @using BlazorBindGen
+@using BlazorBindGen.Attributes
+@using SampleApp.JSBinding
 @using static BlazorBindGen.BindGen
 
 @inject IJSRuntime runtime
@@ -24,8 +26,7 @@ else
 }
 @code
 {
-    JWindow win;
-    public JObjPtr sentiment;
+    Sentiment sentiment;
     string predictText;
     bool isLoaded = false;
     double score;
@@ -34,7 +35,6 @@ else
     {
         await base.OnInitializedAsync();
         await InitAsync(runtime);
-        win = Window;
         await ML5Init();
     }
 
@@ -42,18 +42,18 @@ else
     {
         await ImportAsync("https://unpkg.com/ml5@latest/dist/ml5.min.js");
         Console.Clear();
-        var ml5 = win["ml5"];
-        sentiment = ml5.CallRef("sentiment", "movieReviews", (JSCallBack)OnModelLoaded);
+        var ml5 = DomWindow.Ml5;
+        sentiment = ml5.Sentiment("movieReviews",OnModelLoaded);
     }
 
     void Predict()
     {
-        var v = sentiment.Call<Score>("predict", predictText);
+        var v = sentiment.Predict(predictText);
         score=v.score;
         StateHasChanged();
     }
 
-    void OnModelLoaded(params JObjPtr[] args)
+    void OnModelLoaded()
     {
         isLoaded = true;
         StateHasChanged();
@@ -70,6 +70,5 @@ else
 
     }
 
-    record Score(double score);
 
 }
