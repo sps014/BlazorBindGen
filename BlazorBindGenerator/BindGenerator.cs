@@ -3,6 +3,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
 using BlazorBindGen.Attributes;
@@ -333,7 +334,7 @@ namespace BlazorBindGenerator
 
                             if (isCallbackType)
                             {
-                                finalStatement += $"(JSCallback){p.Type.Name}CallbackStubFunc";
+                                finalStatement += CreateLambdaFromHandler(p, method.ParameterList.Parameters[i].Identifier.ValueText,semanticModel);
                             }
                             else
                             {
@@ -362,6 +363,54 @@ namespace BlazorBindGenerator
                 writer.WriteLine("}");
 
             }
+        }
+        private  string CreateLambdaFromHandler(IParameterSymbol param,string varName, SemanticModel semModel)
+        {
+            StringBuilder sb = new StringBuilder("(JObjPtr[] result)=>");
+            var pnode = param.Type.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax();
+            if(pnode is DelegateDeclarationSyntax del)
+            {
+                sb.Append("{");
+
+                sb.Append($"if({varName} is null)");
+                sb.Append("return; ");
+
+                ///map params
+                string leftParam = "";
+                if (del.ParameterList is not null)
+                {
+                    int i = 0;
+                    var namesList = new List<string>();
+                    foreach (var p in del.ParameterList.Parameters)
+                    {
+                        sb.Append($"var p{i} = ");
+                        IParameterSymbol symbol = (IParameterSymbol)semModel.GetDeclaredSymbol(p);
+                        var attr = symbol.Type.GetAttributes();
+                        var isRef = symbol.Type.GetAttributes()
+                            .Any(x => x.AttributeClass
+                            .ToString() == "BlazorBindGen.Attributes.JSObjectAttribute")
+                            || symbol.Type.AllInterfaces.Any(x => x.ToString() == "BlazorBindGen.IJSObject");
+
+                        var isPtr = symbol.Type.ToString() == "BlazorBindGen.JObjPtr";
+
+                        if (isPtr)
+                            sb.Append($"result[{i}]; ");
+                        else if (isRef)
+                            sb.Append($"new {p.Type}(result[{i}]); ");
+                        else
+                            sb.Append($"result[{i}].To<{p.Type}>(); ");
+                        namesList.Add("p" + i);
+
+                        i++;
+                    }
+                    leftParam = string.Join(",", namesList);
+
+                }
+                sb.Append($"{varName}?.Invoke({leftParam}); ");
+
+                sb.Append("}");
+            }
+            return sb.ToString();
         }
 
         private void GenerateCallbacks(IEnumerable<MemberMetadata> enumerable, Metadata data,

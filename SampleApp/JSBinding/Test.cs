@@ -23,7 +23,7 @@ public partial class Document
     [JSCallback]
     public delegate void OnChangeHandler(int a,DoTaskHandler d);
     [JSCallback]
-    public delegate void DoTaskHandler();
+    public delegate void DoTaskHandler(int k,int j);
     [JSFunction("alert")]
     private partial void Alert(DoTaskHandler data);
 }
