@@ -9,7 +9,7 @@ namespace SampleApp.JSBinding
         private static ML5 ml5;
 
     }
-    [JSObject("ml5", "https://unpkg.com/ml5@latest/dist/ml5.min.js")]
+    [JSObject("https://unpkg.com/ml5@latest/dist/ml5.min.js")]
     public partial class ML5
     {
         [JSFunction("sentiment")]

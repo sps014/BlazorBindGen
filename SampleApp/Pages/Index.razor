@@ -30,9 +30,11 @@
 		p5.CallVoid("createCanvas", 800, 600);
 		p5.CallVoid("background", 0, 120, 0, 255);
 
-		var c=await ImportRefAsync("https://www.gstatic.com/firebasejs/9.8.2/firebase-app.js");
-		var S=c.PropVal<string>("SDK_VERSION");
-		Console.WriteLine(S);
+		//var c=await ImportRefAsync("https://www.gstatic.com/firebasejs/9.8.2/firebase-app.js");
+		//var S=c.PropVal<string>("SDK_VERSION");
+
+		var firebase = await FirebaseBinding.ImportAsync();
+		Console.WriteLine(firebase.SDK_VERSION);
 	}
 	
 }

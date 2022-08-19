@@ -127,9 +127,9 @@ global using BlazorBindGen;",
                 writer.WriteLine('}');
 
                 if (data.Attribute.ArgumentList is not null)
-                    if (data.Attribute.ArgumentList.Arguments.Count >= 2)
+                    if (data.Attribute.ArgumentList.Arguments.Count >= 1)
                     {
-                        var value=data.Attribute.ArgumentList.Arguments[1].Expression.ToString();
+                        var value=data.Attribute.ArgumentList.Arguments[0].Expression.ToString();
                         writer.WriteLine($"public static async ValueTask<{name}> ImportAsync()");
                         writer.WriteLine("{");
                         writer.Indent++;
@@ -192,8 +192,8 @@ global using BlazorBindGen;",
                     ReportDiagonostics($"A JS interopable field `{field.Declaration.Variables[0].Identifier.ValueText}` cant be static when class itself is not static for type ", data, context);
                     continue;
                 }
-
-                writer.WriteLine(ToggleFirstLetterCase(field.Declaration.Variables[0].Identifier.ValueText));
+                string name = data.Attribute.ArgumentList is not null ? m.Attribute.ArgumentList.Arguments[0].Expression.ToString().Trim('"'):ToggleFirstLetterCase(propInfo.Name);
+                writer.WriteLine(name);
                 writer.WriteLine("{");
                 writer.Indent++;
 
