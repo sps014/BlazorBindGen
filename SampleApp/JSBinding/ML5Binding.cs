@@ -17,6 +17,9 @@ namespace SampleApp.JSBinding
 
         [JSCallback]
         public delegate void OnModelLoadHandler();
+
+        [JSConstruct("p5")]
+        public partial Sentiment Construct();
     }
     [JSObject]
     public partial class Sentiment

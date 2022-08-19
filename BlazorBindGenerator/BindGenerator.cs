@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -79,6 +80,9 @@ global using BlazorBindGen;",
             //generate delegate 
             GenerateCallbacks(members.Where(x => x.AttribType == AttributeTypes.Callback), data, context, writer);
 
+            //generate construct ref type 
+            GenerateFunctions(members.Where(x => x.AttribType == AttributeTypes.Construct), data, context, writer,true);
+
             writer.Indent--;
             writer.WriteLine("}");
             writer.WriteLine("#nullable restore");
@@ -88,6 +92,7 @@ global using BlazorBindGen;",
             context.AddSource($"{data.GetName()}_{nameCount++}.g.cs", SourceText.From(ss.ToString(), System.Text.Encoding.UTF8));
         }
 
+    
         private string ClassHeader(Metadata data)
         {
             StringBuilder sb = new("");
@@ -256,7 +261,7 @@ global using BlazorBindGen;",
                 writer.WriteLine("}");
             }
         }
-        private void GenerateFunctions(IEnumerable<MemberMetadata> props, Metadata data, GeneratorExecutionContext context, IndentedTextWriter writer)
+        private void GenerateFunctions(IEnumerable<MemberMetadata> props, Metadata data, GeneratorExecutionContext context, IndentedTextWriter writer,bool isConstruct=false)
         {
             foreach (var f in props)
             {
@@ -273,9 +278,14 @@ global using BlazorBindGen;",
                     ReportDiagonostics($"A JS interopable function `{method.Identifier.ValueText}` should have partial modifier for type ", data, context);
                     continue;
                 }
+                if (isConstruct && !IsReturnTypeRef(method, context, data))
+                {
+                    ReportDiagonostics("Return type must have attribute `JSObject` for Construct attribute in type ", data, context);
+                    continue;
+                }
 
 
-                var methodInfo = GetMethodInfo(f, context, data);
+                var methodInfo = GetMethodInfo(f, context, data,isConstruct);
 
                 writer.Write(string.Join(" ", method.Modifiers.Select(x => x.ValueText)));
                 //write return type
@@ -324,6 +334,9 @@ global using BlazorBindGen;",
                         else
                             funcName += $"<{method.ReturnType}>";
 
+                    if (isConstruct)
+                        funcName = "Construct";
+
                     var finalStatement = $"_ptr.{funcName}(";
 
                     //parse parameters
@@ -336,8 +349,10 @@ global using BlazorBindGen;",
                     finalStatement += $"\"{methodInfo.Name}\"";
                     if (method.ParameterList is not null)
                     {
-                        finalStatement += ",";
                         int c = symbol.Parameters.Length;
+                        if(c>=1)
+                            finalStatement += ",";
+
                         int i = 0;
                         foreach (var p in symbol.Parameters)
                         {
@@ -382,7 +397,40 @@ global using BlazorBindGen;",
 
             }
         }
-        private  string CreateLambdaFromHandler(IParameterSymbol param,string varName, SemanticModel semModel)
+        private void GenerateConstruct(IEnumerable<MemberMetadata> enumerable, Metadata data, GeneratorExecutionContext context, IndentedTextWriter writer)
+        {
+            foreach (var f in enumerable)
+            {
+                if (f.Member is not MethodDeclarationSyntax method)
+                    continue;
+
+                if (method.Modifiers.Any(x => x.ValueText == "static") && !data.IsStatic())
+                {
+                    ReportDiagonostics($"A JS interopable function `{method.Identifier.ValueText}` cant be static when class itself is not static for type ", data, context);
+                    continue;
+                }
+                if (!method.Modifiers.Any(x => x.ValueText == "partial"))
+                {
+                    ReportDiagonostics($"A JS interopable function `{method.Identifier.ValueText}` should have partial modifier for type ", data, context);
+                    continue;
+                }
+                var isRef = IsReturnTypeRef(method, context, data);
+
+                if( !isRef )
+                {
+                    ReportDiagonostics("Return type must have attribute `JSObject` for Construct attribute in type ",data,context);
+                    continue;
+                }
+
+                var methodInfo = GetMethodInfo(f, context, data);
+
+                writer.Write(string.Join(" ", method.Modifiers.Select(x => x.ValueText)));
+                //write return type
+                writer.Write(" ");
+                writer.Write(method.ReturnType.ToString());
+            }
+        }
+        private string CreateLambdaFromHandler(IParameterSymbol param,string varName, SemanticModel semModel)
         {
             StringBuilder sb = new StringBuilder("(JObjPtr[] result)=>");
             var pnode = param.Type.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax();
@@ -568,7 +616,7 @@ global using BlazorBindGen;",
 
             return new PropertyInfo(true, true, null);
         }
-        private MethodInfo GetMethodInfo(MemberMetadata member, GeneratorExecutionContext context, Metadata data)
+        private MethodInfo GetMethodInfo(MemberMetadata member, GeneratorExecutionContext context, Metadata data,bool isConstruct=false)
         {
 
             if (member.Member is not MethodDeclarationSyntax f)

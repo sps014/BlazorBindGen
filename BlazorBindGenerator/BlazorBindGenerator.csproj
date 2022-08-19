@@ -20,7 +20,6 @@
 	<!--Manual linking file as SG can't contain files-->
 	<ItemGroup>
 		<Compile Include="..\BlazorBindGenShared\Attributes\JSConstructAttribute.cs" Link="Attributes\JSConstructAttribute.cs" />
-		<Compile Include="..\BlazorBindGenShared\Attributes\JSConstructForAttribute.cs" Link="Attributes\JSConstructForAttribute.cs" />
 		<Compile Include="..\BlazorBindGenShared\Attributes\JSFunctionAttribute.cs" Link="Attributes\JSFunctionAttribute.cs" />
 		<Compile Include="..\BlazorBindGenShared\Attributes\JSObjectAttribute.cs" Link="Attributes\JSObjectAttribute.cs" />
 		<Compile Include="..\BlazorBindGenShared\Attributes\JSPropertyAttribute.cs" Link="Attributes\JSPropertyAttribute.cs" />

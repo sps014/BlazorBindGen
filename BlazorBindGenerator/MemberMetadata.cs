@@ -58,6 +58,5 @@ internal enum AttributeTypes
     Property,
     Construct,
     Function,
-    ConstructFor,
     Callback
 }

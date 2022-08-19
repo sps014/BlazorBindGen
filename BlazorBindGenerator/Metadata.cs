@@ -10,8 +10,6 @@ namespace BlazorBindGenerator;
 
 internal class Metadata
 {
-    private const string Value = "JSConstructFor";
-
     public SyntaxNode DataType { get; set; }
     public SupportedTypes Type { get; set; }
     public AttributeSyntax Attribute { get;set; }
@@ -110,10 +108,6 @@ internal class Metadata
                     else if (attr.Name.ToString().EndsWith(GetAttributeShortName<JSConstructAttribute>()))
                     {
                         filteredMembers.Add(new MemberMetadata(MemberType.Function, member, attr, AttributeTypes.Construct));
-                    }
-                    else if (attr.Name.ToString().Contains(Value))
-                    {
-                        filteredMembers.Add(new MemberMetadata(MemberType.Function, member, attr, AttributeTypes.ConstructFor));
                     }
                     else if (attr.Name.ToString().EndsWith(GetAttributeShortName<JSCallbackAttribute>()))
                     {
