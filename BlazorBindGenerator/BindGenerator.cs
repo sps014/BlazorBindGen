@@ -45,6 +45,8 @@ global using BlazorBindGen;",
             using IndentedTextWriter writer = new(ss);
             var usings = data.GetUsings();
             writer.WriteLine(usings);
+            writer.WriteLine(@"using System.Threading.Tasks;");
+
             var @namespace = data.GetNamespace();
             writer.WriteLine(@namespace is null ? "" : $"namespace {@namespace};");
             writer.WriteLine("#nullable enable");
@@ -105,7 +107,7 @@ global using BlazorBindGen;",
         private void GenerateInit(Metadata data, IndentedTextWriter writer)
         {
             var isStatic = data.IsStatic();
-            if (data.AttribTypes == AttribTypes.Window && data.IsStatic())
+            if (data.AttribTypes == AttribTypes.Window && isStatic)
             {
                 writer.WriteLine("internal static BlazorBindGen.JObjPtr _ptr => BlazorBindGen.BindGen.Window;");
             }
@@ -115,13 +117,27 @@ global using BlazorBindGen;",
             }
             else
             {
+                var name = data.GetName();
                 writer.WriteLine("internal BlazorBindGen.JObjPtr _ptr;");
-                writer.WriteLine($"internal {data.GetName()}(BlazorBindGen.JObjPtr ptr)");
+                writer.WriteLine($"internal {name}(BlazorBindGen.JObjPtr ptr)");
                 writer.WriteLine("{");
                 writer.Indent++;
                 writer.WriteLine("_ptr = ptr;");
                 writer.Indent--;
                 writer.WriteLine('}');
+
+                if (data.Attribute.ArgumentList is not null)
+                    if (data.Attribute.ArgumentList.Arguments.Count >= 2)
+                    {
+                        var value=data.Attribute.ArgumentList.Arguments[1].Expression.ToString();
+                        writer.WriteLine($"public static async ValueTask<{name}> ImportAsync()");
+                        writer.WriteLine("{");
+                        writer.Indent++;
+                        writer.WriteLine($"return new {name}(await BlazorBindGen.BindGen.ImportRefAsync({value}));");
+                        writer.Indent--;
+                        writer.WriteLine("}");
+
+                    }
             }
         }
 
