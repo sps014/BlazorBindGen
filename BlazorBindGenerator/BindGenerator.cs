@@ -71,17 +71,22 @@ global using BlazorBindGen;",
 
             var members = data.GetMembers();
 
-            //generate fields
-            GenerateFieldsProperties(members.Where(x => x.AttribType == AttributeTypes.Property), data, context, writer);
+            foreach (var member in members.GroupBy(x=>x.AttribType))
+            {
+                //generate properties
+                if (member.Key==AttributeTypes.Property)
+                    GenerateFieldsProperties(member, data, context, writer);
+                //generate functions
+                else if (member.Key==AttributeTypes.Function)
+                    GenerateFunctions(member, data, context, writer);
+                //generate callback
+                else if (member.Key == AttributeTypes.Callback)
+                    GenerateCallbacks(member, data, context, writer);
+                else if (member.Key == AttributeTypes.Construct)
+                    //generate constructor for ref type 
+                    GenerateFunctions(member, data, context, writer, true);
+            }
 
-            //generate functions
-            GenerateFunctions(members.Where(x => x.AttribType == AttributeTypes.Function), data, context, writer);
-
-            //generate delegate 
-            GenerateCallbacks(members.Where(x => x.AttribType == AttributeTypes.Callback), data, context, writer);
-
-            //generate construct ref type 
-            GenerateFunctions(members.Where(x => x.AttribType == AttributeTypes.Construct), data, context, writer,true);
 
             writer.Indent--;
             writer.WriteLine("}");
@@ -163,20 +168,6 @@ global using BlazorBindGen;",
                     ReportDiagonostics("Fields can't be public, protected or internal for type", data, context);
                     continue;
                 }
-
-                writer.Write("public ");
-                writer.Write(string.Join(" ", field.Modifiers
-                    .Where(x => x.ValueText != "private")
-                    .Select(x => x.ValueText)));
-                writer.Write(" ");
-
-                var isRefType = IsRefType(field, data, context);
-
-                //type can be ref type also check if base class of any type is IJSObject type
-                writer.Write(field.Declaration.Type.ToString());
-
-                writer.Write(" ");
-
                 if (field.Declaration.Variables.Count > 1)
                 {
                     ReportDiagonostics($"More than one field variables defined in same line in Type ", data, context);
@@ -197,6 +188,21 @@ global using BlazorBindGen;",
                     ReportDiagonostics($"A JS interopable field `{field.Declaration.Variables[0].Identifier.ValueText}` cant be static when class itself is not static for type ", data, context);
                     continue;
                 }
+
+                writer.Write("public ");
+                writer.Write(string.Join(" ", field.Modifiers
+                    .Where(x => x.ValueText != "private")
+                    .Select(x => x.ValueText)));
+                writer.Write(" ");
+
+                var isRefType = IsRefType(field, data, context);
+
+                //type can be ref type also check if base class of any type is IJSObject type
+                writer.Write(field.Declaration.Type.ToString());
+
+                writer.Write(" ");
+
+               
                 string name = data.Attribute.ArgumentList is not null ? m.Attribute.ArgumentList.Arguments[0].Expression.ToString().Trim('"'):ToggleFirstLetterCase(propInfo.Name);
                 writer.WriteLine(name);
                 writer.WriteLine("{");
