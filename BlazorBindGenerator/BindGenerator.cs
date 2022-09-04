@@ -379,6 +379,10 @@ global using BlazorBindGen;",
                             nt=nt.Remove(nt.Length - 1, 1);
                             funcName += $"<{nt}>";
                         }
+                        else if (methodInfo.IsValueTaskOnly)
+                        {
+                            funcName = "CallVoidAsync";
+                        }
                         else
                             funcName += $"<{method.ReturnType}>";
 

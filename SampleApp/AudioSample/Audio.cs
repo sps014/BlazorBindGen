@@ -52,7 +52,7 @@ public partial class Audio
 
     //call js play() on _audio object ; js side equivalent await _audio.play(); 
     [JSFunction("play")]
-    public partial void Play();
+    public partial ValueTask Play();
 
     //onmetadatacallback 
     [JSProperty("onloadedmetadata")]
