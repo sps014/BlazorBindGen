@@ -50,7 +50,7 @@ global using BlazorBindGen;",
 
             var @namespace = data.GetNamespace();
             writer.WriteLine(@namespace is null ? "" : $"namespace {@namespace};");
-            writer.WriteLine("#nullable enable");
+            writer.WriteLine("#nullable disable");
 
             if (data.AccessModifier() is null || !data.AccessModifier().Value.Any(x => x.ValueText == "partial"))
             {
@@ -133,6 +133,8 @@ global using BlazorBindGen;",
                 writer.WriteLine("{");
                 writer.Indent++;
                 writer.WriteLine("_ptr = ptr;");
+                //write propertied callbacks 
+                HandlePropertiedCallbacks(data, writer);
                 writer.Indent--;
                 writer.WriteLine('}');
 
@@ -151,6 +153,46 @@ global using BlazorBindGen;",
             }
         }
 
+        private void HandlePropertiedCallbacks(Metadata data, IndentedTextWriter writer)
+        {
+            var members = data.GetMembers().Where(x => x.Type==MemberType.Delegate);
+
+            foreach(var m in members)
+            {
+                string name = null;
+                bool isProp = false;
+                foreach (var atttrib in m.Member.AttributeLists)
+                {
+                    var att = atttrib.Attributes.FirstOrDefault(x => x.Name.ToString()
+                    .StartsWith(BindingSyntaxReciever.GetAttributeShortName<JSPropertyAttribute>()));
+
+                    if (att is null)
+                        continue;
+
+                    isProp = true;
+
+                    if (att.ArgumentList.Arguments.Count > 0)
+                    {
+                        if (att.ArgumentList.Arguments[0].Expression is LiteralExpressionSyntax syn)
+                            if (syn.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.StringLiteralExpression))
+                                name = syn.Token.ValueText;
+                    }
+                    break;
+                }
+                if (!isProp)
+                    continue;
+
+                if (m.Member is not DelegateDeclarationSyntax del)
+                    continue;
+
+                if (name == null)
+                    name = del.Identifier.ValueText.Replace("Handler", string.Empty);
+                
+                writer.WriteLine($"_ptr.SetPropCallBack(\"{name}\",{del.Identifier.ValueText}CallbackStubFunc);");
+
+            }
+        }
+
         private void GenerateFieldsProperties(IEnumerable<MemberMetadata> props, Metadata data, GeneratorExecutionContext context, IndentedTextWriter writer)
         {
             foreach (var m in props)
@@ -165,7 +207,7 @@ global using BlazorBindGen;",
                 }
                 if(field.Modifiers.Any(x =>x.ValueText == "public" || x.ValueText == "protected" || x.ValueText == "internal"))
                 {
-                    ReportDiagonostics("Fields can't be public, protected or internal for type", data, context);
+                    ReportDiagonostics($"Fields {field.Declaration.Variables[0].Identifier.ValueText} can't be public, protected or internal for type", data, context);
                     continue;
                 }
                 if (field.Declaration.Variables.Count > 1)
@@ -403,39 +445,7 @@ global using BlazorBindGen;",
 
             }
         }
-        private void GenerateConstruct(IEnumerable<MemberMetadata> enumerable, Metadata data, GeneratorExecutionContext context, IndentedTextWriter writer)
-        {
-            foreach (var f in enumerable)
-            {
-                if (f.Member is not MethodDeclarationSyntax method)
-                    continue;
 
-                if (method.Modifiers.Any(x => x.ValueText == "static") && !data.IsStatic())
-                {
-                    ReportDiagonostics($"A JS interopable function `{method.Identifier.ValueText}` cant be static when class itself is not static for type ", data, context);
-                    continue;
-                }
-                if (!method.Modifiers.Any(x => x.ValueText == "partial"))
-                {
-                    ReportDiagonostics($"A JS interopable function `{method.Identifier.ValueText}` should have partial modifier for type ", data, context);
-                    continue;
-                }
-                var isRef = IsReturnTypeRef(method, context, data);
-
-                if( !isRef )
-                {
-                    ReportDiagonostics("Return type must have attribute `JSObject` for Construct attribute in type ",data,context);
-                    continue;
-                }
-
-                var methodInfo = GetMethodInfo(f, context, data);
-
-                writer.Write(string.Join(" ", method.Modifiers.Select(x => x.ValueText)));
-                //write return type
-                writer.Write(" ");
-                writer.Write(method.ReturnType.ToString());
-            }
-        }
         private string CreateLambdaFromHandler(IParameterSymbol param,string varName, SemanticModel semModel)
         {
             StringBuilder sb = new StringBuilder("(JObjPtr[] result)=>");

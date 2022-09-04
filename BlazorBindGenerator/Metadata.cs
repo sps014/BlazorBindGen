@@ -161,7 +161,7 @@ internal class Metadata
     public string GetUsings()
     {
         var usings = DataType.SyntaxTree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>();
-        return string.Join("\r\n", usings.Select(u => u.ToFullString()));
+        return string.Join("", usings.Select(u => u.ToFullString()));
     }
 
 }
