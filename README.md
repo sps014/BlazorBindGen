@@ -232,7 +232,7 @@ else
 
 ```
 
-#### Experimentation Auto Generation Bind Generator for WASM
+#### Experimentation Auto Bind Generator for WASM
 Above example binding could also be generated with Source Generator for WASM .
 
 ```cs
@@ -270,6 +270,7 @@ namespace SampleApp.JSBinding
 
 }
 ```
+see usage [here](https://github.com/sps014/BlazorBindGen/blob/main/SampleApp/Pages/ML5Page.razor)
 
 #### Warning 
 1. BlazorBindGen Api is subject to change, API is not stable.
