@@ -14,7 +14,6 @@ A binding generator for JS, Call any JS function or property in <b>Blazor Wasm a
 * WASM and Server Supported
 * automatic memory management
 
-
 #### Installation
 Use [Nuget Package Manager](https://www.nuget.org/packages/BlazorBindGen/) or .Net CLI 
 ```
@@ -233,8 +232,44 @@ else
 
 ```
 
+#### Experimentation Auto Generation Bind Generator for WASM
+Above example binding could also be generated with Source Generator for WASM .
+
+```cs
+using BlazorBindGen.Attributes;
+
+namespace SampleApp.JSBinding
+{
+    [JSWindow] // represents JS Window class
+    public static partial class DomWindow  
+    {
+        [JSProperty] 
+        private static ML5 ml5; // refers to window.ml5 prop js side
+
+    }
+    [JSObject("https://unpkg.com/ml5@latest/dist/ml5.min.js")]
+    public partial class ML5
+    {
+        [JSFunction("sentiment")]
+        public partial Sentiment Sentiment(string modelName,OnModelLoadHandler onModelLoad);
+
+        [JSCallback]
+        public delegate void OnModelLoadHandler();
+
+        [JSConstruct("p5")]
+        public partial Sentiment Construct();
+    }
+    [JSObject]
+    public partial class Sentiment
+    {
+        [JSFunction("predict")]
+        public partial Score Predict(string text);
+    }
+    public record Score(double score);
 
 
+}
+```
 
 #### Warning 
 1. BlazorBindGen Api is subject to change, API is not stable.
