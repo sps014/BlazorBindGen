@@ -9,9 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerSample", "ServerSampl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApp", "SampleApp\SampleApp.csproj", "{A9BBC7E1-52E3-430D-A9C6-B8E381DA319F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorBindGenShared", "BlazorBindGenShared\BlazorBindGenShared.csproj", "{CDACF335-8B06-45F3-9BBD-21BFF959F6C5}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorBindGenerator", "BlazorBindGenerator\BlazorBindGenerator.csproj", "{89D57E10-7350-4538-BE5F-CBAAEC1C2326}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorBindGenerator", "BlazorBindGenerator\BlazorBindGenerator.csproj", "{89D57E10-7350-4538-BE5F-CBAAEC1C2326}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,10 +29,6 @@ Global
 		{A9BBC7E1-52E3-430D-A9C6-B8E381DA319F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9BBC7E1-52E3-430D-A9C6-B8E381DA319F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9BBC7E1-52E3-430D-A9C6-B8E381DA319F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CDACF335-8B06-45F3-9BBD-21BFF959F6C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CDACF335-8B06-45F3-9BBD-21BFF959F6C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CDACF335-8B06-45F3-9BBD-21BFF959F6C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CDACF335-8B06-45F3-9BBD-21BFF959F6C5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{89D57E10-7350-4538-BE5F-CBAAEC1C2326}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{89D57E10-7350-4538-BE5F-CBAAEC1C2326}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89D57E10-7350-4538-BE5F-CBAAEC1C2326}.Release|Any CPU.ActiveCfg = Release|Any CPU

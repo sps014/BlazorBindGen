@@ -19,13 +19,13 @@
 
 	<!--Manual linking file as SG can't contain files-->
 	<ItemGroup>
-		<Compile Include="..\BlazorBindGenShared\Attributes\JSConstructAttribute.cs" Link="Attributes\JSConstructAttribute.cs" />
-		<Compile Include="..\BlazorBindGenShared\Attributes\JSFunctionAttribute.cs" Link="Attributes\JSFunctionAttribute.cs" />
-		<Compile Include="..\BlazorBindGenShared\Attributes\JSObjectAttribute.cs" Link="Attributes\JSObjectAttribute.cs" />
-		<Compile Include="..\BlazorBindGenShared\Attributes\JSPropertyAttribute.cs" Link="Attributes\JSPropertyAttribute.cs" />
-		<Compile Include="..\BlazorBindGenShared\Attributes\JSCallbackAttribute.cs" Link="Attributes\JSCallbackAttribute.cs" />
-		<Compile Include="..\BlazorBindGenShared\Attributes\JSWindowAttribute.cs" Link="Attributes\JSWindowAttribute.cs" />
-		<Compile Include="..\BlazorBindGenShared\IJSObject.cs" Link="IJSObject.cs" />
+		<Compile Include="..\BlazorBindGen\Attributes\JSConstructAttribute.cs" Link="Attributes\JSConstructAttribute.cs" />
+		<Compile Include="..\BlazorBindGen\Attributes\JSFunctionAttribute.cs" Link="Attributes\JSFunctionAttribute.cs" />
+		<Compile Include="..\BlazorBindGen\Attributes\JSObjectAttribute.cs" Link="Attributes\JSObjectAttribute.cs" />
+		<Compile Include="..\BlazorBindGen\Attributes\JSPropertyAttribute.cs" Link="Attributes\JSPropertyAttribute.cs" />
+		<Compile Include="..\BlazorBindGen\Attributes\JSCallbackAttribute.cs" Link="Attributes\JSCallbackAttribute.cs" />
+		<Compile Include="..\BlazorBindGen\Attributes\JSWindowAttribute.cs" Link="Attributes\JSWindowAttribute.cs" />
+		<Compile Include="..\BlazorBindGen\IJSObject.cs" Link="IJSObject.cs" />
 
 	</ItemGroup>
 </Project>

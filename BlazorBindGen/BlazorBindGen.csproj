@@ -1,11 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>0.0.3.4</Version>
+    <Version>0.0.3.5</Version>
     <Authors>sps014</Authors>
     <Company></Company>
     <Description>A binding generator for JS, Call any JS function or property in Blazor Wasm  and Server without writing JS wrappers.</Description>
