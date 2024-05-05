@@ -75,7 +75,7 @@ var audio=new Audio(param);
 var_audio=Window.Construct("Audio",param); /* js reference to Audio Player */ 
 ```
 
-###### Fuction Calls
+###### Function Calls
 
 ```cs
 
