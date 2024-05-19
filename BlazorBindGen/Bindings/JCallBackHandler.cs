@@ -27,5 +27,9 @@ internal class JCallBackHandler
     public void ErrorMessageCallback(long callBackId, string? error,object? value)
     {
         ErrorMessages.TryAdd(callBackId, (value, error));
+        OnValueOrErrorCallback?.Invoke(callBackId);
     }
+
+    public delegate void OnValueOrErrorCallbackHandler(long callBackId);
+    public static event OnValueOrErrorCallbackHandler? OnValueOrErrorCallback;
 }

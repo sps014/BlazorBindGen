@@ -143,7 +143,7 @@ namespace BlazorBindGen
         /// Import external or internal JS module, equivalent to import in JS
         /// </summary>
         /// <param name="moduleUrl">uri of the module</param>
-        public static async Task ImportAsync(string moduleUrl)
+        public static ValueTask ImportAsync(string moduleUrl)
         {
             //Increment Sync callback id
             long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
@@ -151,17 +151,17 @@ namespace BlazorBindGen
             if(IsWasm)
                 Module.InvokeUnmarshalled<string, int, object>("ImportWasm", moduleUrl, (int)errH);
             else
-                await GeneralizedModule.InvokeVoidAsync("ImportGen",moduleUrl, (int)errH);
+                GeneralizedModule.InvokeVoidAsync("ImportGen", moduleUrl, (int)errH).ConfigureAwait(false);
             
             //wait until both runtimes are synced
-            await LockHandler.HoldVoid(errH);
+            return LockHandler.HoldVoid(errH);
         }
         /// <summary>
         /// Import external or internal JS module, equivalent to import in JS but with return pointer
         /// eg. var a =await import("./a.js");
         /// </summary>
         /// <param name="moduleUrl">uri of the module</param>
-        public static async Task<JObjPtr> ImportRefAsync(string moduleUrl)
+        public static async ValueTask<JObjPtr> ImportRefAsync(string moduleUrl)
         {
             //Increment Sync callback id
 
@@ -170,9 +170,11 @@ namespace BlazorBindGen
             if (IsWasm)
                 Module.InvokeVoid("ImportReturn", moduleUrl, (int)errH,obj.Hash);
             else
-                await GeneralizedModule.InvokeVoidAsync("ImportReturn", moduleUrl, (int)errH,obj.Hash);
-            
-            //wait until both runtimes are synced
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                GeneralizedModule.InvokeVoidAsync("ImportReturn", moduleUrl, (int)errH,obj.Hash).ConfigureAwait(false);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+
+                //wait until both runtimes are synced
             await LockHandler.HoldVoid(errH);
             return obj;
         }

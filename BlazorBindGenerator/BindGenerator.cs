@@ -19,19 +19,21 @@ namespace BlazorBindGenerator
     {
         public void Execute(GeneratorExecutionContext context)
         {
+            context.AddSource($"bindgen.g.cs",
+            SourceText.From(
+                                @"global using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>;
+                                global using BlazorBindGen.Attributes;
+                                global using BlazorBindGen;",
+                Encoding.UTF8));
+
             if (context.SyntaxReceiver is not BindingSyntaxReciever reciever)
                 return;
+
             nameCount = 0;
             foreach (var meta in reciever.MetaDataCollection)
             {
                 HandleMetadata(context, meta);
             }
-
-            context.AddSource($"bindgen.g.cs",
-                SourceText.From(@"global using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>;
-global using BlazorBindGen.Attributes;
-global using BlazorBindGen;",
-                Encoding.UTF8));
 
         }
 
@@ -71,13 +73,13 @@ global using BlazorBindGen;",
 
             var members = data.GetMembers();
 
-            foreach (var member in members.GroupBy(x=>x.AttribType))
+            foreach (var member in members.GroupBy(x => x.AttribType))
             {
                 //generate properties
-                if (member.Key==AttributeTypes.Property)
+                if (member.Key == AttributeTypes.Property)
                     GenerateFieldsProperties(member, data, context, writer);
                 //generate functions
-                else if (member.Key==AttributeTypes.Function)
+                else if (member.Key == AttributeTypes.Function)
                     GenerateFunctions(member, data, context, writer);
                 //generate callback
                 else if (member.Key == AttributeTypes.Callback)
@@ -97,7 +99,7 @@ global using BlazorBindGen;",
             context.AddSource($"{data.GetName()}_{nameCount++}.g.cs", SourceText.From(ss.ToString(), System.Text.Encoding.UTF8));
         }
 
-    
+
         private string ClassHeader(Metadata data)
         {
             StringBuilder sb = new("");
@@ -141,7 +143,7 @@ global using BlazorBindGen;",
                 if (data.Attribute.ArgumentList is not null)
                     if (data.Attribute.ArgumentList.Arguments.Count >= 1)
                     {
-                        var value=data.Attribute.ArgumentList.Arguments[0].Expression.ToString();
+                        var value = data.Attribute.ArgumentList.Arguments[0].Expression.ToString();
                         writer.WriteLine($"public static async ValueTask<{name}> ImportAsync()");
                         writer.WriteLine("{");
                         writer.Indent++;
@@ -155,9 +157,9 @@ global using BlazorBindGen;",
 
         private void HandlePropertiedCallbacks(Metadata data, IndentedTextWriter writer)
         {
-            var members = data.GetMembers().Where(x => x.Type==MemberType.Delegate);
+            var members = data.GetMembers().Where(x => x.Type == MemberType.Delegate);
 
-            foreach(var m in members)
+            foreach (var m in members)
             {
                 string name = null;
                 bool isProp = false;
@@ -187,7 +189,7 @@ global using BlazorBindGen;",
 
                 if (name == null)
                     name = del.Identifier.ValueText.Replace("Handler", string.Empty);
-                
+
                 writer.WriteLine($"_ptr.SetPropCallBack(\"{name}\",{del.Identifier.ValueText}CallbackStubFunc);");
 
             }
@@ -205,7 +207,7 @@ global using BlazorBindGen;",
                 {
                     propInfo.Name = field.Declaration.Variables[0].Identifier.ValueText;
                 }
-                if(field.Modifiers.Any(x =>x.ValueText == "public" || x.ValueText == "protected" || x.ValueText == "internal"))
+                if (field.Modifiers.Any(x => x.ValueText == "public" || x.ValueText == "protected" || x.ValueText == "internal"))
                 {
                     ReportDiagonostics($"Fields {field.Declaration.Variables[0].Identifier.ValueText} can't be public, protected or internal for type", data, context);
                     continue;
@@ -244,8 +246,8 @@ global using BlazorBindGen;",
 
                 writer.Write(" ");
 
-               
-                string name = data.Attribute.ArgumentList is not null ? m.Attribute.ArgumentList.Arguments[0].Expression.ToString().Trim('"'):ToggleFirstLetterCase(propInfo.Name);
+
+                string name = data.Attribute.ArgumentList is not null ? m.Attribute.ArgumentList.Arguments[0].Expression.ToString().Trim('"') : ToggleFirstLetterCase(propInfo.Name);
                 writer.WriteLine(name);
                 writer.WriteLine("{");
                 writer.Indent++;
@@ -309,7 +311,7 @@ global using BlazorBindGen;",
                 writer.WriteLine("}");
             }
         }
-        private void GenerateFunctions(IEnumerable<MemberMetadata> props, Metadata data, GeneratorExecutionContext context, IndentedTextWriter writer,bool isConstruct=false)
+        private void GenerateFunctions(IEnumerable<MemberMetadata> props, Metadata data, GeneratorExecutionContext context, IndentedTextWriter writer, bool isConstruct = false)
         {
             foreach (var f in props)
             {
@@ -333,7 +335,7 @@ global using BlazorBindGen;",
                 }
 
 
-                var methodInfo = GetMethodInfo(f, context, data,isConstruct);
+                var methodInfo = GetMethodInfo(f, context, data, isConstruct);
 
                 writer.Write(string.Join(" ", method.Modifiers.Select(x => x.ValueText)));
                 //write return type
@@ -375,8 +377,8 @@ global using BlazorBindGen;",
                         if (!methodInfo.IsValueTaskOnly && methodInfo.ReturnFullName.StartsWith("System.Threading.Tasks.ValueTask<"))
                         {
                             int ind = methodInfo.ReturnFullName.IndexOf("ValueTask<");
-                            var nt=methodInfo.ReturnFullName.Substring(ind + 10);
-                            nt=nt.Remove(nt.Length - 1, 1);
+                            var nt = methodInfo.ReturnFullName.Substring(ind + 10);
+                            nt = nt.Remove(nt.Length - 1, 1);
                             funcName += $"<{nt}>";
                         }
                         else if (methodInfo.IsValueTaskOnly)
@@ -402,7 +404,7 @@ global using BlazorBindGen;",
                     if (method.ParameterList is not null)
                     {
                         int c = symbol.Parameters.Length;
-                        if(c>=1)
+                        if (c >= 1)
                             finalStatement += ",";
 
                         int i = 0;
@@ -419,7 +421,7 @@ global using BlazorBindGen;",
 
                             if (isCallbackType)
                             {
-                                finalStatement += CreateLambdaFromHandler(p, method.ParameterList.Parameters[i].Identifier.ValueText,semanticModel);
+                                finalStatement += CreateLambdaFromHandler(p, method.ParameterList.Parameters[i].Identifier.ValueText, semanticModel);
                             }
                             else
                             {
@@ -450,11 +452,11 @@ global using BlazorBindGen;",
             }
         }
 
-        private string CreateLambdaFromHandler(IParameterSymbol param,string varName, SemanticModel semModel)
+        private string CreateLambdaFromHandler(IParameterSymbol param, string varName, SemanticModel semModel)
         {
             StringBuilder sb = new StringBuilder("(JObjPtr[] result)=>");
             var pnode = param.Type.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax();
-            if(pnode is DelegateDeclarationSyntax del)
+            if (pnode is DelegateDeclarationSyntax del)
             {
                 sb.Append("{");
 
@@ -502,16 +504,16 @@ global using BlazorBindGen;",
         private void GenerateCallbacks(IEnumerable<MemberMetadata> enumerable, Metadata data,
             GeneratorExecutionContext context, IndentedTextWriter writer)
         {
-            var semModel =context.Compilation.GetSemanticModel(data.DataType.SyntaxTree);
+            var semModel = context.Compilation.GetSemanticModel(data.DataType.SyntaxTree);
 
             foreach (var f in enumerable)
             {
                 if (f.Member is not DelegateDeclarationSyntax del)
                     continue;
                 var name = del.Identifier.ValueText;
-                if(!name.EndsWith("Handler"))
+                if (!name.EndsWith("Handler"))
                 {
-                    ReportDiagonostics($"delegate name should be {name}Handler for type ",data,context);
+                    ReportDiagonostics($"delegate name should be {name}Handler for type ", data, context);
                     continue;
                 }
                 if (!del.ReturnType.ToString().Equals("void"))
@@ -519,7 +521,7 @@ global using BlazorBindGen;",
                     ReportDiagonostics($"delegate with non void return type not supported for `{name}` in type ", data, context);
                     continue;
                 }
-                var eventName = name.Replace("Handler",string.Empty);
+                var eventName = name.Replace("Handler", string.Empty);
 
                 writer.WriteLine($"public event {name}? {eventName};");
                 var callbackStubName = $"{name}CallbackStubFunc";
@@ -536,11 +538,11 @@ global using BlazorBindGen;",
 
                 ///map params
                 string leftParam = "";
-                if(del.ParameterList is not null)
+                if (del.ParameterList is not null)
                 {
                     int i = 0;
                     var namesList = new List<string>();
-                    foreach(var p in del.ParameterList.Parameters)
+                    foreach (var p in del.ParameterList.Parameters)
                     {
                         writer.Write($"var p{i} = ");
                         IParameterSymbol symbol = (IParameterSymbol)semModel.GetDeclaredSymbol(p);
@@ -550,7 +552,7 @@ global using BlazorBindGen;",
                             .ToString() == "BlazorBindGen.Attributes.JSObjectAttribute")
                             || symbol.Type.AllInterfaces.Any(x => x.ToString() == "BlazorBindGen.IJSObject");
 
-                        var isPtr = symbol.Type.ToString()=="BlazorBindGen.JObjPtr";
+                        var isPtr = symbol.Type.ToString() == "BlazorBindGen.JObjPtr";
 
                         if (isPtr)
                             writer.WriteLine($"result[{i}];");
@@ -562,8 +564,8 @@ global using BlazorBindGen;",
 
                         i++;
                     }
-                    leftParam=string.Join(",", namesList);
-                    
+                    leftParam = string.Join(",", namesList);
+
                 }
                 writer.WriteLine($"{eventName}?.Invoke({leftParam});");
 
@@ -636,7 +638,7 @@ global using BlazorBindGen;",
 
             return new PropertyInfo(true, true, null);
         }
-        private MethodInfo GetMethodInfo(MemberMetadata member, GeneratorExecutionContext context, Metadata data,bool isConstruct=false)
+        private MethodInfo GetMethodInfo(MemberMetadata member, GeneratorExecutionContext context, Metadata data, bool isConstruct = false)
         {
 
             if (member.Member is not MethodDeclarationSyntax f)

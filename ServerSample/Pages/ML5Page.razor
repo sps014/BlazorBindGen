@@ -3,6 +3,7 @@
 @using BlazorBindGen
 @using static BlazorBindGen.BindGen
 @inject IJSRuntime runtime
+@using JSCallBack=System.Action<BlazorBindGen.JObjPtr[]>; 
 
 @if (isLoaded)
 {
@@ -33,6 +34,7 @@ else
     {
         if (!firstRender)
             return;
+
         await InitAsync(runtime);
         win = Window;
         await Task.Run(async() =>
@@ -46,7 +48,7 @@ else
         await ImportAsync("https://unpkg.com/ml5@latest/dist/ml5.min.js");
         Console.Clear();
         var ml5 = await win.PropRefAsync("ml5");
-        sentiment = await ml5.CallRefAsync("sentiment", "movieReviews",OnModelLoaded);
+        sentiment = await ml5.CallRefAsync("sentiment", "movieReviews", (JSCallBack)OnModelLoaded);
     }
 
     async Task Predict()

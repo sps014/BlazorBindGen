@@ -338,7 +338,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
         if (IsWasm)
             Module.InvokeVoid("FuncRefAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, obj.Hash, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("FuncRefAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, obj.Hash, Hash);
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            GeneralizedModule.InvokeVoidAsync("FuncRefAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, obj.Hash, Hash).ConfigureAwait(false);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
         ParamPool.Return(args);
 
@@ -353,17 +355,17 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// <param name="funcName"></param>
     /// <param name="param"></param>
 
-    public async ValueTask CallVoidAwaitedAsync(string funcName, params object[] param)
+    public ValueTask CallVoidAwaitedAsync(string funcName, params object[] param)
     {
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
         if (IsWasm)
             Module.InvokeVoid("FuncVoidAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("FuncVoidAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
+            GeneralizedModule.InvokeVoidAsync("FuncVoidAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash).ConfigureAwait(false);
 
         ParamPool.Return(args);
-        await LockHandler.HoldVoid(errH);
+        return LockHandler.HoldVoid(errH);
     }
 
     /// <summary>
@@ -373,17 +375,17 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// <param name="param"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public async ValueTask<T?> CallAwaitedAsync<T>(string funcName, params object[] param)
+    public ValueTask<T?> CallAwaitedAsync<T>(string funcName, params object[] param)
     {
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
         if (IsWasm)
             Module.InvokeVoid("FuncAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("FuncAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
+            GeneralizedModule.InvokeVoidAsync("FuncAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash).ConfigureAwait(false);
 
         ParamPool.Return(args);
-        return await LockHandler.Hold<T>(errH);
+        return LockHandler.Hold<T>(errH);
     }
 
     /// <summary>

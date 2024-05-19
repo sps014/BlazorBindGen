@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Concurrent;
+using System.Text.Json;
 namespace BlazorBindGen.Bindings;
 
 /// <summary>
@@ -8,6 +9,25 @@ namespace BlazorBindGen.Bindings;
 internal static class LockHandler
 {
     /// <summary>
+    /// Await process->Semaphores map 
+    /// </summary>
+    private static ConcurrentDictionary<long, SemaphoreSlim> HoldedTasks = new();
+
+    static LockHandler()
+    {
+        JCallBackHandler.OnValueOrErrorCallback += JCallBackHandler_OnValueOrErrorCallback;
+    }
+
+    private static void JCallBackHandler_OnValueOrErrorCallback(long callBackId)
+    {
+        if(HoldedTasks.ContainsKey(callBackId))
+        {
+            HoldedTasks.TryRemove(callBackId, out var semaphore);
+            semaphore?.Release();
+        }
+    }
+
+    /// <summary>
     /// Hold for async void method call in JS Side so C# side can catch up to it's synchronization.
     /// </summary>
     /// <param name="errH">Error Hash Value of the Async Method</param>
@@ -15,8 +35,9 @@ internal static class LockHandler
     public static async ValueTask HoldVoid(long errH)
     {
         //Wait until Synchronization message is received from JS
-        while (!JCallBackHandler.ErrorMessages.TryGetValue(errH, out _))
-            await Task.Delay(5);
+        var semaphore = new SemaphoreSlim(0,1);
+        HoldedTasks.TryAdd(errH,semaphore);
+        await semaphore.WaitAsync();
         
         //Remove that Value from the Dictionary
         _ = JCallBackHandler.ErrorMessages.TryRemove(errH, out var tpl);
@@ -34,9 +55,10 @@ internal static class LockHandler
     /// <exception cref="Exception"></exception>
     public static async ValueTask<T?> Hold<T>(long errH)
     {
-        while (!JCallBackHandler.ErrorMessages.TryGetValue(errH, out _))
-            await Task.Delay(5);
-        
+        var semaphore = new SemaphoreSlim(0, 1);
+        HoldedTasks.TryAdd(errH, semaphore);
+        await semaphore.WaitAsync();
+
         _ = JCallBackHandler.ErrorMessages.TryRemove(errH, out var tpl);
         
         //Throw the Exception if has error
