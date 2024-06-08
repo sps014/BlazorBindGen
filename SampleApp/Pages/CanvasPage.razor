@@ -30,7 +30,7 @@
 		
 		var canvas = win.PropRef("document").CallRef("getElementById", "myCanvas");
 		
-		var ctx=canvas.CallRef("getContext","2d");
+		var ctx=await canvas.CallRefAsync("getContext","2d");
 		
 		var grad = ctx.CallRef("createLinearGradient", 0,0,400,0);
 		

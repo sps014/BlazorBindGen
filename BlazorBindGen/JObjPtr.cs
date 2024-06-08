@@ -24,11 +24,6 @@ public class JObjPtr : IEquatable<JObjPtr?>
     private static int _hashCount;
 
     /// <summary>
-    /// Pool of parameters to be reused on multiple calls
-    /// </summary>
-    private static readonly ArrayPool<ParamInfo> ParamPool = ArrayPool<ParamInfo>.Shared;
-
-    /// <summary>
     /// Internal Constructor helps in getting new hash address
     /// </summary>
     internal JObjPtr()
@@ -226,11 +221,10 @@ public class JObjPtr : IEquatable<JObjPtr?>
         var args = GetParamList(param);
         T res;
         if (IsWasm)
-            res = Module.Invoke<T>("Func", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
+            res = Module.Invoke<T>("Func", funcName, args, Hash);
         else
             throw PlatformUnsupportedException.Throw();
 
-        ParamPool.Return(args);
         return res;
     }
     /// <summary>
@@ -246,11 +240,10 @@ public class JObjPtr : IEquatable<JObjPtr?>
         var args = GetParamList(param);
         T res;
         if (IsWasm)
-            res = await Module.InvokeAsync<T>("Func", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
+            res = await Module.InvokeAsync<T>("Func", funcName, args, Hash);
         else
-            res = await GeneralizedModule.InvokeAsync<T>("Func", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
+            res = await GeneralizedModule.InvokeAsync<T>("Func", funcName, args, Hash);
 
-        ParamPool.Return(args);
         return res;
     }
     /// <summary>
@@ -266,10 +259,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
         var args = GetParamList(param);
         JObjPtr j = new();
         if (IsWasm)
-            Module.InvokeVoid("FuncRef", funcName, args.AsSpan()[..param.Length].ToArray(), j.Hash, Hash);
+            Module.InvokeVoid("FuncRef", funcName, args, j.Hash, Hash);
         else
             throw PlatformUnsupportedException.Throw();
-        ParamPool.Return(args);
         return j;
     }
     /// <summary>
@@ -284,10 +276,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
         JObjPtr j = new();
         var args = GetParamList(param);
         if (IsWasm)
-            await Module.InvokeVoidAsync("FuncRef", funcName, args.AsSpan()[..param.Length].ToArray(), j.Hash, Hash);
+            await Module.InvokeVoidAsync("FuncRef", funcName, args, j.Hash, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("FuncRef", funcName, args.AsSpan()[..param.Length].ToArray(), j.Hash, Hash);
-        ParamPool.Return(args);
+            await GeneralizedModule.InvokeVoidAsync("FuncRef", funcName,args, j.Hash, Hash);
         return j;
     }
 
@@ -302,10 +293,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         var args = GetParamList(param);
         if (IsWasm)
-            Module.InvokeVoid("FuncVoid", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
+            Module.InvokeVoid("FuncVoid", funcName, args, Hash);
         else
             throw PlatformUnsupportedException.Throw();
-        ParamPool.Return(args);
     }
     /// <summary>
     /// Call a function with the given name in JS Object that returns void ( WASM and Server )
@@ -317,10 +307,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         var args = GetParamList(param);
         if (IsWasm)
-            await Module.InvokeVoidAsync("FuncVoid", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
+            await Module.InvokeVoidAsync("FuncVoid", funcName, args, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("FuncVoid", funcName, args.AsSpan()[..param.Length].ToArray(), Hash);
-        ParamPool.Return(args);
+            await GeneralizedModule.InvokeVoidAsync("FuncVoid", funcName, args, Hash);
     }
 
     /// <summary>
@@ -336,13 +325,11 @@ public class JObjPtr : IEquatable<JObjPtr?>
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
         if (IsWasm)
-            Module.InvokeVoid("FuncRefAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, obj.Hash, Hash);
+            Module.InvokeVoid("FuncRefAwait", funcName, args, errH, obj.Hash, Hash);
         else
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            GeneralizedModule.InvokeVoidAsync("FuncRefAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, obj.Hash, Hash).ConfigureAwait(false);
+            GeneralizedModule.InvokeVoidAsync("FuncRefAwait", funcName, args, errH, obj.Hash, Hash).ConfigureAwait(false);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
-        ParamPool.Return(args);
 
         await LockHandler.HoldVoid(errH);
         return obj;
@@ -360,11 +347,10 @@ public class JObjPtr : IEquatable<JObjPtr?>
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
         if (IsWasm)
-            Module.InvokeVoid("FuncVoidAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
+            Module.InvokeVoid("FuncVoidAwait", funcName, args, errH, Hash);
         else
-            GeneralizedModule.InvokeVoidAsync("FuncVoidAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash).ConfigureAwait(false);
+            GeneralizedModule.InvokeVoidAsync("FuncVoidAwait", funcName, args, errH, Hash).ConfigureAwait(false);
 
-        ParamPool.Return(args);
         return LockHandler.HoldVoid(errH);
     }
 
@@ -380,11 +366,10 @@ public class JObjPtr : IEquatable<JObjPtr?>
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
         if (IsWasm)
-            Module.InvokeVoid("FuncAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash);
+            Module.InvokeVoid("FuncAwait", funcName, args, errH, Hash);
         else
-            GeneralizedModule.InvokeVoidAsync("FuncAwait", funcName, args.AsSpan()[..param.Length].ToArray(), errH, Hash).ConfigureAwait(false);
+            GeneralizedModule.InvokeVoidAsync("FuncAwait", funcName, args, errH, Hash).ConfigureAwait(false);
 
-        ParamPool.Return(args);
         return LockHandler.Hold<T>(errH);
     }
 
@@ -448,11 +433,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
         JObjPtr ptr = new();
         var args = GetParamList(param);
         if (IsWasm)
-            Module.InvokeVoid("Construct", className, args.AsSpan()[..param.Length].ToArray(), ptr.Hash, Hash);
+            Module.InvokeVoid("Construct", className, args, ptr.Hash, Hash);
         else
             throw PlatformUnsupportedException.Throw();
-
-        ParamPool.Return(args);
         return ptr;
     }
     /// <summary>
@@ -467,11 +450,10 @@ public class JObjPtr : IEquatable<JObjPtr?>
         JObjPtr ptr = new();
         var args = GetParamList(param);
         if (IsWasm)
-            await Module.InvokeVoidAsync("Construct", className, args.AsSpan()[..param.Length].ToArray(), ptr.Hash, Hash);
+            await Module.InvokeVoidAsync("Construct", className, args, ptr.Hash, Hash);
         else
-            await GeneralizedModule.InvokeVoidAsync("Construct", className, args.AsSpan()[..param.Length].ToArray(), ptr.Hash, Hash);
+            await GeneralizedModule.InvokeVoidAsync("Construct", className, args, ptr.Hash, Hash);
 
-        ParamPool.Return(args);
         return ptr;
     }
     /// <summary>
@@ -508,7 +490,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static ParamInfo[] GetParamList(params object[] array)
     {
-        var list = ParamPool.Rent(array.Length);
+        var list = new ParamInfo[array.Length];
         var i = 0;
         foreach (var p in array)
         {

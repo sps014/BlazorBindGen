@@ -13,6 +13,7 @@
     <RepositoryUrl>https://github.com/sps014/BlazorBindGen</RepositoryUrl>
     <SignAssembly>False</SignAssembly>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	 <LangVersion>12.0</LangVersion>
   </PropertyGroup>
 
 
