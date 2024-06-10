@@ -1,0 +1,1 @@
+import {testFunc} from "FirebaseBinding";

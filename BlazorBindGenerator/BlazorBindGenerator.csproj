@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
 	<IsRoslynComponent>true</IsRoslynComponent>
-	<LangVersion>11.0</LangVersion>
+	<LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +25,8 @@
 		<Compile Include="..\BlazorBindGen\Attributes\JSPropertyAttribute.cs" Link="Attributes\JSPropertyAttribute.cs" />
 		<Compile Include="..\BlazorBindGen\Attributes\JSCallbackAttribute.cs" Link="Attributes\JSCallbackAttribute.cs" />
 		<Compile Include="..\BlazorBindGen\Attributes\JSWindowAttribute.cs" Link="Attributes\JSWindowAttribute.cs" />
+		<Compile Include="..\BlazorBindGen\Attributes\JSModuleAttribute.cs" Link="Attributes\JSModuleAttribute.cs" />
+		<Compile Include="..\BlazorBindGen\Attributes\ModuleFunctionAttribute.cs" Link="Attributes\ModuleFunctionAttribute.cs" />
 		<Compile Include="..\BlazorBindGen\IJSObject.cs" Link="IJSObject.cs" />
 
 	</ItemGroup>
