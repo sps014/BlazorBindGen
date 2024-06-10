@@ -64,9 +64,38 @@ public class JSBindingGenerator : ISourceGenerator
         writer.Write("} from ");
         writer.WriteLine($"\"{importUrl}\";");
 
+        //write methods
+        for (int i = 0; i < moduleFunctions.Length; i++)
+        {
+            MethodDeclarationSyntax method = moduleFunctions[i];
+            var methodName = methodsToImport[i];
+            writer.WriteLine($"export function {methodName}Binder({string.Join(",",method.ParameterList.Parameters.Select(x=>x.Identifier.Text))})");
+            writer.WriteLine("{");
+            writer.Indent++;
+
+            if (!IsVoidOrTaskReturning(method))
+            {
+                writer.Write("return ");
+            }
+            writer.WriteLine($"{methodName}({string.Join(",", method.ParameterList.Parameters.Select(x => x.Identifier.Text))});");
+
+            writer.Indent--;
+            writer.WriteLine("}");
+        }
+
         File.WriteAllText(filePath, ss.ToString());
     }
-
+    private bool IsVoidOrTaskReturning(MethodDeclarationSyntax method)
+    {
+        var type = method.ReturnType.ToString();
+        if (type.EndsWith("void"))
+            return true;
+        if (type.EndsWith("ValueTask"))
+            return true;
+        if (type.EndsWith("Task"))
+            return true;
+        return false;
+    }
     private string[] GetJSModuleMethodsToImport(MethodDeclarationSyntax[] methods)
     {
         return methods.Select(GetAttributeForMethodDelc).Select(x=>GetValueOfAttributeArgument(x,0)).ToArray();
