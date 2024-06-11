@@ -1,14 +1,14 @@
-﻿namespace SampleApp.JSBinding;
+﻿//using System.Threading.Tasks;
 
-[JSModule(nameof(FirebaseBinding))]
-public partial class FirebaseModule
-{
-    [ModuleFunction("testFunc")]
-    public partial void Method();
+//namespace SampleApp.JSBinding;
 
-    [ModuleFunction("testFunc2")]
-    public partial Task Method2();
-    [ModuleFunction("testFunc3")]
-    public partial int Method3();
-}
+//[JSModule(nameof(FirebaseBinding))]
+//public partial class FirebaseModule
+//{
+//    [ModuleFunction("testFunc")]
+//    public partial FirebaseBinding Method(int data, string feta);
+
+//    [ModuleFunction("testFunc3")]
+//    public partial void Method3(int data, string feta);
+//}
 
