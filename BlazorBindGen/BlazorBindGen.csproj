@@ -5,7 +5,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>0.0.3.7</Version>
+    <Version>0.0.3.8</Version>
     <Authors>sps014</Authors>
     <Company></Company>
     <Description>A binding generator for JS, Call any JS function or property in Blazor Wasm  and Server without writing JS wrappers.</Description>
@@ -14,7 +14,15 @@
     <SignAssembly>False</SignAssembly>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	 <LangVersion>12.0</LangVersion>
+	 <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 
   <ItemGroup>
