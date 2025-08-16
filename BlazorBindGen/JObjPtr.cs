@@ -16,26 +16,33 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// <summary>
     /// Current Hash of JS Object used for Memory Management 
     /// </summary>
-    internal int Hash { get; private set; }
+    internal Guid Hash { get; private set; }
 
     /// <summary>
     /// Internal JS Object Pointer Address Allocator (Counter)
     /// </summary>
-    private static int _hashCount;
+    private static Guid _hashCount;
 
     /// <summary>
     /// Internal Constructor helps in getting new hash address
     /// </summary>
+    /// 
+    private readonly static Lock _lockObj = new(); // Initialize the new Lock object
+
+
     internal JObjPtr()
     {
-        Hash = Interlocked.Increment(ref _hashCount);
+
+        _lockObj.EnterScope();
+        Hash = Guid.CreateVersion7();
+        _lockObj.Exit();
     }
     ~JObjPtr()
     {
         if (IsWasm)
-            _ = Module.InvokeUnmarshalled<int, object>("DeletePtr", Hash);
+            WasmModule.InvokeVoid("DeletePtr", Hash);
         else
-            GeneralizedModule.InvokeVoidAsync("DeletePtr", Hash);
+            ServerModule.InvokeVoidAsync("DeletePtr", Hash);
     }
 
     /// <summary>
@@ -48,7 +55,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     public T PropVal<T>(string propertyName)
     {
         if (IsWasm)
-            return Module.Invoke<T>("PropVal", propertyName, Hash);
+            return WasmModule.Invoke<T>("PropVal", propertyName, Hash);
         else
             throw PlatformUnsupportedException.Throw();
     }
@@ -61,11 +68,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// <returns>exact value of property</returns>
     public async ValueTask<T> PropValAsync<T>(string propertyName)
     {
-        if (IsWasm)
-            return await Module.InvokeAsync<T>("PropVal", propertyName, Hash);
-        else
-            return await GeneralizedModule.InvokeAsync<T>("PropVal", propertyName, Hash);
+        return await CommonModule.InvokeAsync<T>("PropValGen", propertyName, Hash);
     }
+
     /// <summary>
     /// Get Reference Pointer to JS Object Property in WASM
     /// <para>Equivalent to let objPtr=obj.prop</para>
@@ -76,7 +81,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         JObjPtr obj = new();
         if (IsWasm)
-            _ = Module.InvokeUnmarshalled<string, int, int, object>("PropRef", propertyName, obj.Hash, Hash);
+            WasmModule.InvokeVoid("PropRef", propertyName, obj.Hash, Hash);
         else
             throw PlatformUnsupportedException.Throw();
 
@@ -91,10 +96,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     public async ValueTask<JObjPtr> PropRefAsync(string propertyName)
     {
         JObjPtr obj = new();
-        if (IsWasm)
-            _ = Module.InvokeUnmarshalled<string, int, int, object>("PropRef", propertyName, obj.Hash, Hash);
-        else
-            await GeneralizedModule.InvokeVoidAsync("PropRefGen", propertyName, obj.Hash, Hash);
+        await CommonModule.InvokeVoidAsync("PropRef", propertyName, obj.Hash, Hash);
         return obj;
     }
     /// <summary>
@@ -107,7 +109,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     public void SetPropVal<T>(string propertyName, T value)
     {
         if (IsWasm)
-            Module.InvokeVoid("PropSet", propertyName, value, Hash);
+            WasmModule.InvokeVoid("PropSet", propertyName, value, Hash);
         else
             throw PlatformUnsupportedException.Throw();
     }
@@ -118,12 +120,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// <param name="propertyName"></param>
     /// <param name="value">C# Serializable Value to set to JS object property</param>
     /// <typeparam name="T"></typeparam>
-    public async Task SetPropValAsync<T>(string propertyName, T value)
+    public ValueTask SetPropValAsync<T>(string propertyName, T value)
     {
-        if (IsWasm)
-            Module.InvokeVoid("PropSet", propertyName, value, Hash);
-        else
-            await GeneralizedModule.InvokeVoidAsync("PropSet", propertyName, value, Hash);
+        return CommonModule.InvokeVoidAsync("PropSet", propertyName, value, Hash);
     }
 
     /// <summary>
@@ -136,7 +135,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     public void SetPropRef(string propertyName, JObjPtr obj)
     {
         if (IsWasm)
-            _ = Module.InvokeUnmarshalled<string, int, int, object>("PropSetRef", propertyName, obj.Hash, Hash);
+            WasmModule.InvokeVoid("PropSetRef", propertyName, obj.Hash, Hash);
         else
             throw PlatformUnsupportedException.Throw();
     }
@@ -147,12 +146,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// </summary>
     /// <param name="propertyName"></param>
     /// <param name="obj"></param>
-    public async ValueTask SetPropRefAsync(string propertyName, JObjPtr obj)
+    public  ValueTask SetPropRefAsync(string propertyName, JObjPtr obj)
     {
-        if (IsWasm)
-            _ = Module.InvokeUnmarshalled<string, int, int, object>("PropSetRef", propertyName, obj.Hash, Hash);
-        else
-            await GeneralizedModule.InvokeVoidAsync("PropSetRefGen", propertyName, obj.Hash, Hash);
+        return CommonModule.InvokeVoidAsync("PropSetRef", propertyName, obj.Hash, Hash);
     }
 
     /// <summary>
@@ -164,7 +160,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     public bool IsProp(string propertyName)
     {
         if (IsWasm)
-            return Module.InvokeUnmarshalled<string, int, bool>("IsProp", propertyName, Hash);
+            return WasmModule.Invoke<bool>("IsProp", propertyName, Hash);
         else
             throw PlatformUnsupportedException.Throw();
     }
@@ -173,12 +169,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// </summary>
     /// <param name="propertyName"></param>
     /// <returns></returns>
-    public async ValueTask<bool> IsPropAsync(string propertyName)
+    public ValueTask<bool> IsPropAsync(string propertyName)
     {
-        if (IsWasm)
-            return Module.InvokeUnmarshalled<string, int, bool>("IsProp", propertyName, Hash);
-        else
-            return await GeneralizedModule.InvokeAsync<bool>("IsPropGen", propertyName, Hash);
+        return  CommonModule.InvokeAsync<bool>("IsProp", propertyName, Hash);
     }
 
     /// <summary>
@@ -190,7 +183,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     public bool IsFunc(string propertyName)
     {
         if (IsWasm)
-            return Module.InvokeUnmarshalled<string, int, bool>("IsFunc", propertyName, Hash);
+            return WasmModule.Invoke<bool>("IsFunc", propertyName, Hash);
         else
             throw PlatformUnsupportedException.Throw();
     }
@@ -199,12 +192,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// </summary>
     /// <param name="propertyName"></param>
     /// <returns></returns>
-    public async ValueTask<bool> IsFuncAsync(string propertyName)
+    public ValueTask<bool> IsFuncAsync(string propertyName)
     {
-        if (IsWasm)
-            return Module.InvokeUnmarshalled<string, int, bool>("IsFunc", propertyName, Hash);
-        else
-            return await GeneralizedModule.InvokeAsync<bool>("IsFuncGen", propertyName, Hash);
+        return CommonModule.InvokeAsync<bool>("IsFunc", propertyName, Hash);
     }
 
     /// <summary>
@@ -221,7 +211,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
         var args = GetParamList(param);
         T res;
         if (IsWasm)
-            res = Module.Invoke<T>("Func", funcName, args, Hash);
+            res = WasmModule.Invoke<T>("Func", funcName, args, Hash);
         else
             throw PlatformUnsupportedException.Throw();
 
@@ -238,12 +228,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     public async ValueTask<T> CallAsync<T>(string funcName, params object[] param)
     {
         var args = GetParamList(param);
-        T res;
-        if (IsWasm)
-            res = await Module.InvokeAsync<T>("Func", funcName, args, Hash);
-        else
-            res = await GeneralizedModule.InvokeAsync<T>("Func", funcName, args, Hash);
-
+        T res = await CommonModule.InvokeAsync<T>("Func", funcName, args, Hash);
         return res;
     }
     /// <summary>
@@ -259,7 +244,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
         var args = GetParamList(param);
         JObjPtr j = new();
         if (IsWasm)
-            Module.InvokeVoid("FuncRef", funcName, args, j.Hash, Hash);
+            WasmModule.InvokeVoid("FuncRef", funcName, args, j.Hash, Hash);
         else
             throw PlatformUnsupportedException.Throw();
         return j;
@@ -275,10 +260,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         JObjPtr j = new();
         var args = GetParamList(param);
-        if (IsWasm)
-            await Module.InvokeVoidAsync("FuncRef", funcName, args, j.Hash, Hash);
-        else
-            await GeneralizedModule.InvokeVoidAsync("FuncRef", funcName,args, j.Hash, Hash);
+        await CommonModule.InvokeVoidAsync("FuncRef", funcName, args, j.Hash, Hash);
         return j;
     }
 
@@ -293,7 +275,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         var args = GetParamList(param);
         if (IsWasm)
-            Module.InvokeVoid("FuncVoid", funcName, args, Hash);
+            WasmModule.InvokeVoid("FuncVoid", funcName, args, Hash);
         else
             throw PlatformUnsupportedException.Throw();
     }
@@ -306,10 +288,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     public async ValueTask CallVoidAsync(string funcName, params object[] param)
     {
         var args = GetParamList(param);
-        if (IsWasm)
-            await Module.InvokeVoidAsync("FuncVoid", funcName, args, Hash);
-        else
-            await GeneralizedModule.InvokeVoidAsync("FuncVoid", funcName, args, Hash);
+        await CommonModule.InvokeVoidAsync("FuncVoid", funcName, args, Hash);
     }
 
     /// <summary>
@@ -324,12 +303,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
         JObjPtr obj = new();
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
-        if (IsWasm)
-            Module.InvokeVoid("FuncRefAwait", funcName, args, errH, obj.Hash, Hash);
-        else
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            GeneralizedModule.InvokeVoidAsync("FuncRefAwait", funcName, args, errH, obj.Hash, Hash).ConfigureAwait(false);
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            CommonModule.InvokeVoidAsync("FuncRefAwait", funcName, args, errH, obj.Hash, Hash).ConfigureAwait(false);
+        #pragma warning restore CS4014 
 
         await LockHandler.HoldVoid(errH);
         return obj;
@@ -346,11 +322,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
-        if (IsWasm)
-            Module.InvokeVoid("FuncVoidAwait", funcName, args, errH, Hash);
-        else
-            GeneralizedModule.InvokeVoidAsync("FuncVoidAwait", funcName, args, errH, Hash).ConfigureAwait(false);
-
+        CommonModule.InvokeVoidAsync("FuncVoidAwait", funcName, args, errH, Hash).ConfigureAwait(false);
         return LockHandler.HoldVoid(errH);
     }
 
@@ -365,11 +337,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
-        if (IsWasm)
-            Module.InvokeVoid("FuncAwait", funcName, args, errH, Hash);
-        else
-            GeneralizedModule.InvokeVoidAsync("FuncAwait", funcName, args, errH, Hash).ConfigureAwait(false);
-
+        CommonModule.InvokeVoidAsync("FuncAwait", funcName, args, errH, Hash).ConfigureAwait(false);
         return LockHandler.Hold<T>(errH);
     }
 
@@ -380,7 +348,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     public string AsJsonText()
     {
         if (IsWasm)
-            return Module.Invoke<string>("AsJson", Hash);
+            return WasmModule.Invoke<string>("AsJson", Hash);
         else
             throw PlatformUnsupportedException.Throw();
 
@@ -389,12 +357,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// Return JSON string representation of object in WASM and server
     /// </summary>
     /// <returns></returns>
-    public async ValueTask<string> AsJsonTextAsync()
+    public  ValueTask<string> AsJsonTextAsync()
     {
-        if (IsWasm)
-            return await Module.InvokeAsync<string>("AsJson", Hash);
-        else
-            return await GeneralizedModule.InvokeAsync<string>("AsJson", Hash);
+        return CommonModule.InvokeAsync<string>("AsJson", Hash);
     }
     /// <summary>
     /// Convert JS Object to C# Object in WASM
@@ -405,7 +370,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     public T To<T>()
     {
         if (IsWasm)
-            return Module.Invoke<T>("To", Hash);
+            return WasmModule.Invoke<T>("To", Hash);
         else
             throw PlatformUnsupportedException.Throw();
     }
@@ -414,12 +379,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public async ValueTask<T> ToAsync<T>()
+    public ValueTask<T> ToAsync<T>()
     {
-        if (IsWasm)
-            return await Module.InvokeAsync<T>("To", Hash);
-        else
-            return await GeneralizedModule.InvokeAsync<T>("To", Hash);
+         return CommonModule.InvokeAsync<T>("To", Hash);
     }
     /// <summary>
     /// Create instance of JS Object from current object
@@ -433,7 +395,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
         JObjPtr ptr = new();
         var args = GetParamList(param);
         if (IsWasm)
-            Module.InvokeVoid("Construct", className, args, ptr.Hash, Hash);
+            WasmModule.InvokeVoid("Construct", className, args, ptr.Hash, Hash);
         else
             throw PlatformUnsupportedException.Throw();
         return ptr;
@@ -449,11 +411,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         JObjPtr ptr = new();
         var args = GetParamList(param);
-        if (IsWasm)
-            await Module.InvokeVoidAsync("Construct", className, args, ptr.Hash, Hash);
-        else
-            await GeneralizedModule.InvokeVoidAsync("Construct", className, args, ptr.Hash, Hash);
-
+        await CommonModule.InvokeVoidAsync("Construct", className, args, ptr.Hash, Hash);
         return ptr;
     }
     /// <summary>
@@ -467,7 +425,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         var cbk = new JCallback(action);
         if (IsWasm)
-            Module.InvokeVoid("SetCallback", propertyName, cbk.DotNet, Hash);
+            WasmModule.InvokeVoid("SetCallback", propertyName, cbk.DotNet, Hash);
         else
             throw PlatformUnsupportedException.Throw();
     }
@@ -477,13 +435,10 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// </summary>
     /// <param name="propertyName"></param>
     /// <param name="action">Method to be executed on event callback</param>
-    public async ValueTask SetPropCallBackAsync(string propertyName, Action<JObjPtr[]> action)
+    public  ValueTask SetPropCallBackAsync(string propertyName, Action<JObjPtr[]> action)
     {
         var cbk = new JCallback(action);
-        if (IsWasm)
-            await Module.InvokeVoidAsync("SetCallback", propertyName, cbk.DotNet, Hash);
-        else
-            await GeneralizedModule.InvokeVoidAsync("SetCallback", propertyName, cbk.DotNet, Hash);
+        return CommonModule.InvokeVoidAsync("SetCallback", propertyName, cbk.DotNet, Hash);
 
     }
 
@@ -518,36 +473,30 @@ public class JObjPtr : IEquatable<JObjPtr?>
             return false;
 
         if (IsWasm)
-            return Module.Invoke<bool>("isEqualRef", other.Hash, Hash);
+            return WasmModule.Invoke<bool>("isEqualRef", other.Hash, Hash);
         else
-            return GeneralizedModule.InvokeAsync<bool>("isEqualRef", other.Hash, Hash).GetAwaiter().GetResult();
+            return ServerModule.InvokeAsync<bool>("isEqualRef", other.Hash, Hash).GetAwaiter().GetResult();
     }
     /// <summary>
     /// Check equality of two object pointers
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public async ValueTask<bool> EqualsAsync(JObjPtr? other)
+    public ValueTask<bool> EqualsAsync(JObjPtr? other)
     {
         if (other == null)
-            return false;
+            return ValueTask.FromResult(false);
 
-        if (IsWasm)
-            return Module.Invoke<bool>("isEqualRef", other.Hash, Hash);
-        else
-            return await GeneralizedModule.InvokeAsync<bool>("isEqualRef", other.Hash, Hash);
+         return CommonModule.InvokeAsync<bool>("isEqualRef", other.Hash, Hash);
     }
 
     /// <summary>
     /// console.log current object
     /// </summary>
     /// <returns></returns>
-    public async Task LogAsync()
+    public ValueTask LogAsync()
     {
-        if (IsWasm)
-            await Module.InvokeVoidAsync("logPtr", Hash);
-        else
-            await GeneralizedModule.InvokeVoidAsync("logPtr", Hash);
+        return CommonModule.InvokeVoidAsync("logPtr", Hash);
     }
     /// <summary>
     /// console.log current object
@@ -556,7 +505,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     public void Log()
     {
         if (IsWasm)
-             Module.InvokeVoid("logPtr", Hash);
+            WasmModule.InvokeVoid("logPtr", Hash);
         else
             PlatformUnsupportedException.Throw();
     }

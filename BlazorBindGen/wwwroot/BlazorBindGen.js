@@ -10,32 +10,23 @@ export function initDotnet(net) {
 export function CreateWin(h) {
     props[h] = window;
 }
-let conv_str=(s) => BINDING.conv_string(s);
 export let PropVal = (pname, h) => props[h][pname];
+
 export function PropRef(pname, proph, h) {
-    props[proph] = props[h][conv_str(pname)];
-}
-export function PropRefGen(pname, proph, h) {
     props[proph] = props[h][pname];
 }
 export function DeletePtr(phash) {
     delete props[phash];
 }
-export let IsProp = (pname, h) => typeof (props[h][conv_str(pname)]) != "function"
-    && typeof (props[h][conv_str(pname)]) !== undefined;
-export let IsPropGen = (pname, h) => typeof (props[h][pname]) != "function"
+export let IsProp = (pname, h) => typeof (props[h][pname]) != "function"
     && typeof (props[h][pname]) !== undefined;
 
-export let IsFunc = (pname, h) => typeof (props[h][conv_str(pname)]) == "function";
-export let IsFuncGen = (pname, h) => typeof (props[h][pname]) == "function";
+export let IsFunc = (pname, h) => typeof (props[h][pname]) == "function";
 
 export function PropSet(pname, val, h) {
     props[h][pname] = val;
 }
 export function PropSetRef(pname, ph, h) {
-    props[h][conv_str(pname)] = props[ph];
-}
-export function PropSetRefGen(pname, ph, h) {
     props[h][pname] = props[ph];
 }
 export function Func(fname,params, h) {
@@ -64,12 +55,6 @@ export async function FuncAwait(fname, params, eh, h){
     try { v = await props[h][fname](...paramexpand(params)); }
     catch (e) { er = e.toString(); }
     dotnet.invokeMethodAsync("errorMessage", eh, er, v);
-}
-export async function ImportWasm(module, eh) {
-    let er = "";
-    try { await import(conv_str(module)); }
-    catch (e) { er = e.toString(); }
-    dotnet.invokeMethodAsync("errorMessage", eh, er, null);
 }
 export async function ImportGen(module, eh) {
     let er = "";

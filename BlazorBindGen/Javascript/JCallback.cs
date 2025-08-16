@@ -60,9 +60,9 @@ internal class JCallback
     {
         JObjPtr ptrs = new();
         if (BindGen.IsWasm)
-            BindGen.Module.InvokeVoid("CleanUpArgs", hash, ptrs.Hash);
+            BindGen.WasmModule.InvokeVoid("CleanUpArgs", hash, ptrs.Hash);
         else
-            await BindGen.GeneralizedModule.InvokeVoidAsync("CleanUpArgs", hash, ptrs.Hash);
+            await BindGen.ServerModule.InvokeVoidAsync("CleanUpArgs", hash, ptrs.Hash);
         return ptrs;
     }
 }

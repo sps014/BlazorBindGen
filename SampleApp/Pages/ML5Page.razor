@@ -48,8 +48,16 @@ else
 
     void Predict()
     {
-        var v = sentiment.Predict(predictText);
-        score=v.score;
+        if (string.IsNullOrWhiteSpace(predictText))
+            return;
+
+        sentiment.Predict(predictText,GotResult);
+       
+    }
+
+    void GotResult(Score v)
+    {
+        score = v.confidence;
         StateHasChanged();
     }
 

@@ -15,12 +15,14 @@ namespace BlazorBindGen
         /// <summary>
         /// Used in only Web Assembly Context for faster Interops
         /// </summary>
-        public static IJSUnmarshalledObjectReference Module { get; private set; }
+        public static IJSInProcessObjectReference WasmModule { get; private set; }
         
         /// <summary>
         /// Used in Server Context for synchronized Interops
         /// </summary>
-        public static IJSObjectReference GeneralizedModule { get; private set; }
+        public static IJSObjectReference ServerModule { get; private set; }
+
+        public static IJSObjectReference CommonModule => IsWasm ? WasmModule : ServerModule;
         
         /// <summary>
         /// get Current JS Window.
@@ -55,12 +57,12 @@ namespace BlazorBindGen
             if (IsWasm)
             {
                 Runtime = jsRuntime as IJSInProcessRuntime;
-                Module=await Runtime!.InvokeAsync<IJSUnmarshalledObjectReference>(
+                WasmModule=await Runtime!.InvokeAsync<IJSInProcessObjectReference>(
                    "import", "./_content/BlazorBindGen/BlazorBindGen.js");
             }
             else
             {
-                GeneralizedModule = await jsRuntime.InvokeAsync<IJSObjectReference>(
+                ServerModule = await jsRuntime.InvokeAsync<IJSObjectReference>(
                 "import", "./_content/BlazorBindGen/BlazorBindGen.js");
 
             }
@@ -76,9 +78,9 @@ namespace BlazorBindGen
         private static async ValueTask InitDotNet()
         {
             if (IsWasm)
-                Module.InvokeVoid("initDotnet", _dotNet);
+                WasmModule.InvokeVoid("initDotnet", _dotNet);
             else
-                await GeneralizedModule.InvokeVoidAsync("initDotnet", _dotNet);
+                await ServerModule.InvokeVoidAsync("initDotnet", _dotNet);
         }
 #nullable restore
         
@@ -88,9 +90,9 @@ namespace BlazorBindGen
         public static async ValueTask DisposeAsync()
         {
             if (IsWasm)
-                await Module.DisposeAsync();
+                await WasmModule.DisposeAsync();
             else
-                await GeneralizedModule.DisposeAsync();
+                await ServerModule.DisposeAsync();
         }
         
         /// <summary>
@@ -105,7 +107,7 @@ namespace BlazorBindGen
                 PlatformUnsupportedException.Throw();
 
             var obj = new JObjPtr();
-            _ = Module.InvokeUnmarshalled<byte[], int, object>("SetArrayToRef", array, obj.Hash);
+            WasmModule.InvokeVoid("SetArrayToRef", array, obj.Hash);
             return obj;
         }
         /// <summary>
@@ -128,7 +130,7 @@ namespace BlazorBindGen
             var arr = new byte[l];
             
             //Get array from js
-            _ = Module.InvokeUnmarshalled<byte[], int, object>("GetArrayRef", arr, jsUint8ArrayRef.Hash);
+            WasmModule.InvokeVoid("GetArrayRef", arr, jsUint8ArrayRef.Hash);
             return arr;
         }
         /// <summary>
@@ -137,7 +139,7 @@ namespace BlazorBindGen
         /// <param name="jsUint8ArrayRef"> pointer to Unit8Array</param>
         /// <returns>size of array</returns>
         private static long FastLength(JObjPtr jsUint8ArrayRef) => 
-            Module.InvokeUnmarshalled<long, int>("FastLength", jsUint8ArrayRef.Hash);
+            WasmModule.Invoke<long>("FastLength", jsUint8ArrayRef.Hash);
         
         /// <summary>
         /// Import external or internal JS module, equivalent to import in JS
@@ -148,10 +150,7 @@ namespace BlazorBindGen
             //Increment Sync callback id
             long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
 
-            if(IsWasm)
-                Module.InvokeUnmarshalled<string, int, object>("ImportWasm", moduleUrl, (int)errH);
-            else
-                GeneralizedModule.InvokeVoidAsync("ImportGen", moduleUrl, (int)errH).ConfigureAwait(false);
+            CommonModule.InvokeVoidAsync("ImportGen", moduleUrl, (int)errH).ConfigureAwait(false);
             
             //wait until both runtimes are synced
             return LockHandler.HoldVoid(errH);
@@ -167,11 +166,9 @@ namespace BlazorBindGen
 
             JObjPtr obj = new();
             long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
-            if (IsWasm)
-                Module.InvokeVoid("ImportReturn", moduleUrl, (int)errH,obj.Hash);
-            else
+
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                GeneralizedModule.InvokeVoidAsync("ImportReturn", moduleUrl, (int)errH,obj.Hash).ConfigureAwait(false);
+                CommonModule.InvokeVoidAsync("ImportReturn", moduleUrl, (int)errH,obj.Hash).ConfigureAwait(false);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
                 //wait until both runtimes are synced

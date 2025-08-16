@@ -23,10 +23,8 @@ public sealed class JWindow : JObjPtr
         JWindow win = new();
         
         //If Wasm go faster Unmarshalled version of functionCall
-        if (BindGen.IsWasm)
-            BindGen.Module.InvokeUnmarshalled<int, object>("CreateWin", win.Hash);
-        else
-            await BindGen.GeneralizedModule.InvokeVoidAsync("CreateWin", win.Hash);
+
+        await BindGen.CommonModule.InvokeVoidAsync("CreateWin", win.Hash);
         return win;
     }
 

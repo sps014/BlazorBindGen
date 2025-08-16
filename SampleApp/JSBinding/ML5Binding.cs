@@ -9,7 +9,7 @@ namespace SampleApp.JSBinding
         private static ML5 ml5;
 
     }
-    [JSObject("https://unpkg.com/ml5@latest/dist/ml5.min.js")]
+    [JSObject("https://unpkg.com/ml5@1/dist/ml5.js")]
     public partial class ML5
     {
         [JSFunction("sentiment")]
@@ -25,9 +25,12 @@ namespace SampleApp.JSBinding
     public partial class Sentiment
     {
         [JSFunction("predict")]
-        public partial Score Predict(string text);
+        public partial void Predict(string text, GotResultHandler gotResult);
+
+        [JSCallback]
+        public delegate void GotResultHandler(Score score);
     }
-    public record Score(double score);
+    public record Score(double confidence);
 
 
 }
