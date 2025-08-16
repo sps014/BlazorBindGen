@@ -422,7 +422,10 @@ namespace BlazorBindGenerator
 
                             if (isCallbackType)
                             {
-                                finalStatement += CreateLambdaFromHandler(p, method.ParameterList.Parameters[i].Identifier.ValueText, semanticModel);
+                                var varName = method.ParameterList.Parameters[i].Identifier.ValueText;
+                                if (varName == "result")
+                                    ReportDiagonostics($"'result' cant be used as the eventhhandler variable name in method argument ",data,context);
+                                finalStatement += CreateLambdaFromHandler(p, varName, semanticModel);
                             }
                             else
                             {
