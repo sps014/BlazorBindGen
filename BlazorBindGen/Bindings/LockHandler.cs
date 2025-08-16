@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Json;
+using System.Threading;
+
 namespace BlazorBindGen.Bindings;
 
 /// <summary>
@@ -9,9 +11,9 @@ namespace BlazorBindGen.Bindings;
 internal static class LockHandler
 {
     /// <summary>
-    /// Await process->Semaphores map 
+    /// Await process->ManualResetEventSlim map 
     /// </summary>
-    private static ConcurrentDictionary<long, SemaphoreSlim> HoldedTasks = new();
+    private static ConcurrentDictionary<long, ManualResetEventSlim> HoldedTasks = new();
 
     static LockHandler()
     {
@@ -22,8 +24,8 @@ internal static class LockHandler
     {
         if(HoldedTasks.ContainsKey(callBackId))
         {
-            HoldedTasks.TryRemove(callBackId, out var semaphore);
-            semaphore?.Release();
+            HoldedTasks.TryRemove(callBackId, out var resetEvent);
+            resetEvent?.Set();
         }
     }
 
@@ -35,9 +37,9 @@ internal static class LockHandler
     public static async ValueTask HoldVoid(long errH)
     {
         //Wait until Synchronization message is received from JS
-        var semaphore = new SemaphoreSlim(0,1);
-        HoldedTasks.TryAdd(errH,semaphore);
-        await semaphore.WaitAsync();
+        var resetEvent = new ManualResetEventSlim(false);
+        HoldedTasks.TryAdd(errH, resetEvent);
+        await Task.Run(() => resetEvent.Wait());
         
         //Remove that Value from the Dictionary
         _ = JCallBackHandler.ErrorMessages.TryRemove(errH, out var tpl);
@@ -46,6 +48,7 @@ internal static class LockHandler
         if (!string.IsNullOrWhiteSpace(tpl.Error))
             throw new Exception(tpl.Error);
     }
+
     /// <summary>
     /// Hold for async non void method call in JS Side so C# side can catch up to it's synchronization.
     /// </summary>
@@ -55,9 +58,9 @@ internal static class LockHandler
     /// <exception cref="Exception"></exception>
     public static async ValueTask<T?> Hold<T>(long errH)
     {
-        var semaphore = new SemaphoreSlim(0, 1);
-        HoldedTasks.TryAdd(errH, semaphore);
-        await semaphore.WaitAsync();
+        var resetEvent = new ManualResetEventSlim(false);
+        HoldedTasks.TryAdd(errH, resetEvent);
+        await Task.Run(() => resetEvent.Wait());
 
         _ = JCallBackHandler.ErrorMessages.TryRemove(errH, out var tpl);
         

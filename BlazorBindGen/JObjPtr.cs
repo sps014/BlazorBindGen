@@ -68,7 +68,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// <returns>exact value of property</returns>
     public async ValueTask<T> PropValAsync<T>(string propertyName)
     {
-        return await CommonModule.InvokeAsync<T>("PropValGen", propertyName, Hash);
+        return await CommonModule.InvokeAsync<T>("PropVal", propertyName, Hash);
     }
 
     /// <summary>
