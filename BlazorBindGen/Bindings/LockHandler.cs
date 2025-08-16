@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Json;
-using System.Threading;
 
 namespace BlazorBindGen.Bindings;
 
@@ -11,9 +10,9 @@ namespace BlazorBindGen.Bindings;
 internal static class LockHandler
 {
     /// <summary>
-    /// Await process->ManualResetEventSlim map 
+    /// Await process->TaskCompletionSource map 
     /// </summary>
-    private static ConcurrentDictionary<long, ManualResetEventSlim> HoldedTasks = new();
+    private static ConcurrentDictionary<long, TaskCompletionSource> HoldedTasks = new();
 
     static LockHandler()
     {
@@ -24,8 +23,8 @@ internal static class LockHandler
     {
         if(HoldedTasks.ContainsKey(callBackId))
         {
-            HoldedTasks.TryRemove(callBackId, out var resetEvent);
-            resetEvent?.Set();
+            HoldedTasks.TryRemove(callBackId, out var tcs);
+            tcs?.TrySetResult();
         }
     }
 
@@ -37,9 +36,9 @@ internal static class LockHandler
     public static async ValueTask HoldVoid(long errH)
     {
         //Wait until Synchronization message is received from JS
-        var resetEvent = new ManualResetEventSlim(false);
-        HoldedTasks.TryAdd(errH, resetEvent);
-        await Task.Run(() => resetEvent.Wait());
+        var tcs = new TaskCompletionSource();
+        HoldedTasks.TryAdd(errH, tcs);
+        await tcs.Task;
         
         //Remove that Value from the Dictionary
         _ = JCallBackHandler.ErrorMessages.TryRemove(errH, out var tpl);
@@ -58,9 +57,9 @@ internal static class LockHandler
     /// <exception cref="Exception"></exception>
     public static async ValueTask<T?> Hold<T>(long errH)
     {
-        var resetEvent = new ManualResetEventSlim(false);
-        HoldedTasks.TryAdd(errH, resetEvent);
-        await Task.Run(() => resetEvent.Wait());
+        var tcs = new TaskCompletionSource();
+        HoldedTasks.TryAdd(errH, tcs);
+        await tcs.Task;
 
         _ = JCallBackHandler.ErrorMessages.TryRemove(errH, out var tpl);
         
