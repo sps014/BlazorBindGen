@@ -53,7 +53,7 @@ else
 
     async Task Predict()
     {
-        sentiment.CallVoidAsync("predict", predictText, (JSCallBack)OnPredict);
+        await sentiment.CallVoidAsync("predict", predictText, (JSCallBack)OnPredict);
 
     }
 

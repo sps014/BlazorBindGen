@@ -46,6 +46,28 @@ public class JObjPtr : IEquatable<JObjPtr?>
     }
 
     /// <summary>
+    /// Checks if current ptr is undefined or null (On WASM)
+    /// </summary>
+    /// <returns></returns>
+    public bool IsNullOrUndefined()
+    {
+        if (IsWasm)
+            return WasmModule.Invoke<bool>("IsNullOrUndefined", Hash);
+        else
+            throw PlatformUnsupportedException.Throw();
+    }
+
+    /// <summary>
+    /// Checks if current ptr is undefined or null 
+    /// </summary>
+    /// <returns></returns>
+    public ValueTask<bool> IsNullOrUndefinedAsync()
+    {
+        return CommonModule.InvokeAsync<bool>("IsNullOrUndefined", Hash);
+    }
+
+
+    /// <summary>
     /// Get Exact C# Serializable Property Value from JS Object
     /// <para>Equivalent to (obj.prop)</para>
     /// </summary>
@@ -59,6 +81,8 @@ public class JObjPtr : IEquatable<JObjPtr?>
         else
             throw PlatformUnsupportedException.Throw();
     }
+
+
     /// <summary>
     /// Get Exact C# Serializable Property Value from JS Object (Supported in WASM and Server)
     /// <para>Equivalent to (obj.prop)</para>

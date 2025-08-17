@@ -12,6 +12,10 @@ export function CreateWin(h) {
 }
 export let PropVal = (pname, h) => props[h][pname];
 
+
+export function IsNullOrUndefined(h) {
+    return props[h] === undefined || props[h] === null;
+}
 export function PropRef(pname, proph, h) {
     props[proph] = props[h][pname];
 }
