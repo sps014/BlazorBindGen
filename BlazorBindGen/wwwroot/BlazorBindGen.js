@@ -16,6 +16,13 @@ export let PropVal = (pname, h) => props[h][pname];
 export function IsNullOrUndefined(h) {
     return props[h] === undefined || props[h] === null;
 }
+export function GetAllProperties(h) {
+    const res = [];
+    for (const p in props[h])
+        res.push(p);
+    return res;
+}
+
 export function PropRef(pname, proph, h) {
     props[proph] = props[h][pname];
 }

@@ -66,6 +66,19 @@ public class JObjPtr : IEquatable<JObjPtr?>
         return CommonModule.InvokeAsync<bool>("IsNullOrUndefined", Hash);
     }
 
+    public string[] GetAllProperties()
+    {
+        if (IsWasm)
+            return WasmModule.Invoke<string[]>("GetAllProperties", Hash);
+        else
+            throw PlatformUnsupportedException.Throw();
+    }
+
+    public ValueTask<string[]> GetAllPropertiesAsync()
+    {
+        return CommonModule.InvokeAsync<string[]>("GetAllProperties", Hash);
+    }
+
 
     /// <summary>
     /// Get Exact C# Serializable Property Value from JS Object
