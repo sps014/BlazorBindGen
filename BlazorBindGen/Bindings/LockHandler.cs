@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Json;
-
 namespace BlazorBindGen.Bindings;
 
 /// <summary>
@@ -10,9 +9,9 @@ namespace BlazorBindGen.Bindings;
 internal static class LockHandler
 {
     /// <summary>
-    /// Await process->TaskCompletionSource map 
+    /// Await process->Semaphores map 
     /// </summary>
-    private static ConcurrentDictionary<long, TaskCompletionSource> HoldedTasks = new();
+    private static ConcurrentDictionary<long, SemaphoreSlim> HoldedTasks = new();
 
     static LockHandler()
     {
@@ -21,10 +20,10 @@ internal static class LockHandler
 
     private static void JCallBackHandler_OnValueOrErrorCallback(long callBackId)
     {
-        if(HoldedTasks.ContainsKey(callBackId))
+        if (HoldedTasks.ContainsKey(callBackId))
         {
-            HoldedTasks.TryRemove(callBackId, out var tcs);
-            tcs?.TrySetResult();
+            HoldedTasks.TryRemove(callBackId, out var semaphore);
+            semaphore?.Release();
         }
     }
 
@@ -36,18 +35,17 @@ internal static class LockHandler
     public static async ValueTask HoldVoid(long errH)
     {
         //Wait until Synchronization message is received from JS
-        var tcs = new TaskCompletionSource();
-        HoldedTasks.TryAdd(errH, tcs);
-        await tcs.Task;
-        
+        var semaphore = new SemaphoreSlim(0, 1);
+        HoldedTasks.TryAdd(errH, semaphore);
+        await semaphore.WaitAsync();
+
         //Remove that Value from the Dictionary
         _ = JCallBackHandler.ErrorMessages.TryRemove(errH, out var tpl);
-        
+
         //Throw the Exception
         if (!string.IsNullOrWhiteSpace(tpl.Error))
             throw new Exception(tpl.Error);
     }
-
     /// <summary>
     /// Hold for async non void method call in JS Side so C# side can catch up to it's synchronization.
     /// </summary>
@@ -57,20 +55,20 @@ internal static class LockHandler
     /// <exception cref="Exception"></exception>
     public static async ValueTask<T?> Hold<T>(long errH)
     {
-        var tcs = new TaskCompletionSource();
-        HoldedTasks.TryAdd(errH, tcs);
-        await tcs.Task;
+        var semaphore = new SemaphoreSlim(0, 1);
+        HoldedTasks.TryAdd(errH, semaphore);
+        await semaphore.WaitAsync();
 
         _ = JCallBackHandler.ErrorMessages.TryRemove(errH, out var tpl);
-        
+
         //Throw the Exception if has error
         if (!string.IsNullOrWhiteSpace(tpl.Error))
             throw new Exception(tpl.Error);
-        
+
         // return default value if  null
         if (tpl.Value is null)
             return default;
-        
+
         //Deserialize the JS Serialized Object to C# Object
         var json = ((JsonElement)tpl.Value).GetRawText();
         return JsonSerializer.Deserialize<T>(json);
