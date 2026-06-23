@@ -150,10 +150,12 @@ namespace BlazorBindGen
             //Increment Sync callback id
             long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
 
-            CommonModule.InvokeVoidAsync("ImportGen", moduleUrl, (int)errH).ConfigureAwait(false);
-            
+            //register the wait before firing the JS call to avoid a callback race
+            var hold = LockHandler.HoldVoid(errH);
+            CommonModule.InvokeVoidAsync("ImportGen", moduleUrl, errH).ConfigureAwait(false);
+
             //wait until both runtimes are synced
-            return LockHandler.HoldVoid(errH);
+            return hold;
         }
         /// <summary>
         /// Import external or internal JS module, equivalent to import in JS but with return pointer
@@ -167,12 +169,14 @@ namespace BlazorBindGen
             JObjPtr obj = new();
             long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
 
+            //register the wait before firing the JS call to avoid a callback race
+            var hold = LockHandler.HoldVoid(errH);
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                CommonModule.InvokeVoidAsync("ImportReturn", moduleUrl, (int)errH,obj.Hash).ConfigureAwait(false);
+                CommonModule.InvokeVoidAsync("ImportReturn", moduleUrl, errH, obj.Hash).ConfigureAwait(false);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
                 //wait until both runtimes are synced
-            await LockHandler.HoldVoid(errH);
+            await hold;
             return obj;
         }
 

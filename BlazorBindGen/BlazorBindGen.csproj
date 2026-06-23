@@ -33,4 +33,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="BlazorBindGen.Tests" />
+  </ItemGroup>
+
 </Project>

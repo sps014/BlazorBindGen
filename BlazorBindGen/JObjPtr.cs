@@ -11,7 +11,7 @@ namespace BlazorBindGen;
 /// <summary>
 /// Represents Pointer to a JS Object on whose properties and methods, constructors can be called and manipulated
 /// </summary>
-public class JObjPtr : IEquatable<JObjPtr?>
+public class JObjPtr : IEquatable<JObjPtr?>, IDisposable, IAsyncDisposable
 {
     /// <summary>
     /// Current Hash of JS Object used for Memory Management 
@@ -19,30 +19,79 @@ public class JObjPtr : IEquatable<JObjPtr?>
     internal Guid Hash { get; private set; }
 
     /// <summary>
-    /// Internal JS Object Pointer Address Allocator (Counter)
+    /// Tracks whether the underlying JS reference has already been released.
     /// </summary>
-    private static Guid _hashCount;
+    private bool _disposed;
 
     /// <summary>
-    /// Internal Constructor helps in getting new hash address
+    /// Internal Constructor helps in getting new hash address.
+    /// <para><see cref="Guid.CreateVersion7()"/> is thread-safe, so no external locking is required.</para>
     /// </summary>
-    /// 
-    private readonly static Lock _lockObj = new(); // Initialize the new Lock object
-
-
     internal JObjPtr()
     {
-
-        _lockObj.EnterScope();
         Hash = Guid.CreateVersion7();
-        _lockObj.Exit();
     }
+
     ~JObjPtr()
     {
-        if (IsWasm)
-            WasmModule.InvokeVoid("DeletePtr", Hash);
-        else
-            ServerModule.InvokeVoidAsync("DeletePtr", Hash);
+        ReleaseJsRef();
+    }
+
+    /// <summary>
+    /// Deterministically release the underlying JS object reference (WASM).
+    /// Prefer this (or a <c>using</c> statement) over relying on the finalizer to bound JS-side memory growth.
+    /// </summary>
+    public void Dispose()
+    {
+        ReleaseJsRef();
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Deterministically release the underlying JS object reference (WASM and Server).
+    /// Prefer this (or an <c>await using</c> statement) over relying on the finalizer to bound JS-side memory growth.
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+            return;
+        _disposed = true;
+
+        try
+        {
+            if (IsWasm)
+                WasmModule.InvokeVoid("DeletePtr", Hash);
+            else
+                await ServerModule.InvokeVoidAsync("DeletePtr", Hash);
+        }
+        catch
+        {
+            // The circuit/runtime may already be gone (e.g. disconnected Server circuit); cleanup is best-effort.
+        }
+
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Best-effort, non-throwing release of the JS reference used by both <see cref="Dispose"/> and the finalizer.
+    /// </summary>
+    private void ReleaseJsRef()
+    {
+        if (_disposed)
+            return;
+        _disposed = true;
+
+        try
+        {
+            if (IsWasm)
+                WasmModule.InvokeVoid("DeletePtr", Hash);
+            else
+                _ = ServerModule.InvokeVoidAsync("DeletePtr", Hash);
+        }
+        catch
+        {
+            // The circuit/runtime may already be gone (e.g. disconnected Server circuit); cleanup is best-effort.
+        }
     }
 
     /// <summary>
@@ -340,11 +389,14 @@ public class JObjPtr : IEquatable<JObjPtr?>
         JObjPtr obj = new();
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
+
+        //register the wait before firing the JS call to avoid a callback race
+        var hold = LockHandler.HoldVoid(errH);
         #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             CommonModule.InvokeVoidAsync("FuncRefAwait", funcName, args, errH, obj.Hash, Hash).ConfigureAwait(false);
         #pragma warning restore CS4014 
 
-        await LockHandler.HoldVoid(errH);
+        await hold;
         return obj;
 
     }
@@ -359,8 +411,11 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
+
+        //register the wait before firing the JS call to avoid a callback race
+        var hold = LockHandler.HoldVoid(errH);
         CommonModule.InvokeVoidAsync("FuncVoidAwait", funcName, args, errH, Hash).ConfigureAwait(false);
-        return LockHandler.HoldVoid(errH);
+        return hold;
     }
 
     /// <summary>
@@ -374,8 +429,11 @@ public class JObjPtr : IEquatable<JObjPtr?>
     {
         long errH = Interlocked.Increment(ref JCallBackHandler.SyncCounter);
         var args = GetParamList(param);
+
+        //register the wait before firing the JS call to avoid a callback race
+        var hold = LockHandler.Hold<T>(errH);
         CommonModule.InvokeVoidAsync("FuncAwait", funcName, args, errH, Hash).ConfigureAwait(false);
-        return LockHandler.Hold<T>(errH);
+        return hold;
     }
 
     /// <summary>
@@ -482,6 +540,9 @@ public class JObjPtr : IEquatable<JObjPtr?>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static ParamInfo[] GetParamList(params object[] array)
     {
+        if (array.Length == 0)
+            return Array.Empty<ParamInfo>();
+
         var list = new ParamInfo[array.Length];
         var i = 0;
         foreach (var p in array)
@@ -500,8 +561,16 @@ public class JObjPtr : IEquatable<JObjPtr?>
     /// Get JS Object property Pointer (works Web Assembly only , throws platform not supported)
     /// <para>eg. let doc=window.document</para>
     /// </summary>
-    /// <param name="propertyName">[web assembly only] property name whose reference you want to fetch</param>
-    public JObjPtr this[string propertyName] => PropRef(propertyName);
+    /// <param name="propertyName">[web assembly only] property name whose reference you want to fetch or set</param>
+    /// <value>
+    /// get: equivalent to <c>let p = obj.prop;</c> (see <see cref="PropRef"/>).
+    /// set: equivalent to <c>obj.prop = value;</c> (see <see cref="SetPropRef"/>).
+    /// </value>
+    public JObjPtr this[string propertyName]
+    {
+        get => PropRef(propertyName);
+        set => SetPropRef(propertyName, value);
+    }
     public override string ToString() => AsJsonText();
 
     public bool Equals(JObjPtr? other)
@@ -512,7 +581,7 @@ public class JObjPtr : IEquatable<JObjPtr?>
         if (IsWasm)
             return WasmModule.Invoke<bool>("isEqualRef", other.Hash, Hash);
         else
-            return ServerModule.InvokeAsync<bool>("isEqualRef", other.Hash, Hash).GetAwaiter().GetResult();
+            throw PlatformUnsupportedException.Throw();
     }
     /// <summary>
     /// Check equality of two object pointers

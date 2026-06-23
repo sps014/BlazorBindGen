@@ -30,7 +30,7 @@ export function DeletePtr(phash) {
     delete props[phash];
 }
 export let IsProp = (pname, h) => typeof (props[h][pname]) != "function"
-    && typeof (props[h][pname]) !== undefined;
+    && typeof (props[h][pname]) !== "undefined";
 
 export let IsFunc = (pname, h) => typeof (props[h][pname]) == "function";
 

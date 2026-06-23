@@ -35,8 +35,10 @@ internal static class LockHandler
     /// <exception cref="Exception">Fetches Error message from JS Side</exception>
     public static async ValueTask HoldVoid(long errH)
     {
-        //Wait until Synchronization message is received from JS
-        var tcs = new TaskCompletionSource();
+        //Wait until Synchronization message is received from JS.
+        //RunContinuationsAsynchronously prevents the JS interop callback thread from
+        //resuming awaiting C# code inline (avoids re-entrancy/deadlocks, esp. on Server).
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         HoldedTasks.TryAdd(errH, tcs);
         await tcs.Task;
         
@@ -57,7 +59,7 @@ internal static class LockHandler
     /// <exception cref="Exception"></exception>
     public static async ValueTask<T?> Hold<T>(long errH)
     {
-        var tcs = new TaskCompletionSource();
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         HoldedTasks.TryAdd(errH, tcs);
         await tcs.Task;
 
